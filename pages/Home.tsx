@@ -113,7 +113,7 @@ const Home: React.FC = () => {
       <section id="about" className="py-24 bg-white w-full">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative">
+            <div className="relative pb-20 sm:pb-24 md:pb-0">
               <div className="border-[12px] border-light relative z-10">
                 <img 
                   src="/images/lawyer2.png" 
@@ -121,9 +121,9 @@ const Home: React.FC = () => {
                   className="w-full h-auto shadow-lg"
                 />
               </div>
-              <div className="absolute -bottom-8 -left-8 w-56 h-56 bg-accent p-8 flex flex-col justify-center items-center text-white z-20 shadow-xl">
-                <span className="text-6xl font-bold">تميزنا</span>
-                <span className="text-center text-base font-bold uppercase tracking-wide mt-2 whitespace-nowrap">بسرعة الخدمة وجودة العمل</span>
+              <div className="absolute bottom-0 left-0 md:-bottom-8 md:-left-8 w-36 h-36 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-accent p-3 sm:p-4 md:p-8 flex flex-col justify-center items-center text-white z-20 shadow-xl">
+                <span className="text-3xl sm:text-4xl md:text-6xl font-bold">تميزنا</span>
+                <span className="text-center text-[10px] sm:text-xs md:text-base font-bold uppercase tracking-wide mt-1 md:mt-2 leading-tight sm:leading-normal">بسرعة الخدمة وجودة العمل</span>
               </div>
             </div>
 
