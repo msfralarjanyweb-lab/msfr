@@ -114,11 +114,11 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="relative pb-20 sm:pb-24 md:pb-0">
-              <div className="border-[12px] border-light relative z-10">
+              <div className="border-4 sm:border-8 md:border-[12px] border-light relative z-10 bg-light">
                 <img 
                   src="/images/lawyer2.png" 
                   alt="Business Meeting" 
-                  className="w-full h-auto shadow-lg"
+                  className="w-full h-auto object-contain shadow-lg block"
                 />
               </div>
               <div className="absolute bottom-0 left-0 md:-bottom-8 md:-left-8 w-36 h-36 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-accent p-3 sm:p-4 md:p-8 flex flex-col justify-center items-center text-white z-20 shadow-xl">
