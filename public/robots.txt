@@ -33,11 +33,18 @@ Disallow: /
 User-agent: Exabot
 Disallow: /
 
-User-agent: facebot
-Disallow: /
-
 User-agent: ia_archiver
 Disallow: /
+
+# السماح لبرمجيات المشاركة الاجتماعية (WhatsApp / Facebook)
+User-agent: facebot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
 
 # السماح لمحركات البحث المشهورة فقط
 User-agent: Googlebot
