@@ -64,6 +64,9 @@ const Home: React.FC = () => {
   
   // Check if at least one section is visible
   const hasVisibleSection = Object.values(visibility).some(visible => visible === true);
+  const featureItems = Array.isArray(safeData.features?.items) && safeData.features.items.length > 0
+    ? safeData.features.items
+    : FEATURES;
 
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [videos, setVideos] = useState<VideoItem[]>(FALLBACK_VIDEOS);
@@ -416,7 +419,7 @@ const Home: React.FC = () => {
             />
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10 mt-16">
-              {safeData.features.items.map((feature, index) => {
+              {featureItems.map((feature, index) => {
                 // Get icon from mapping or use default from FEATURES
                 const IconComponent = typeof feature.icon === 'function' 
                   ? feature.icon 

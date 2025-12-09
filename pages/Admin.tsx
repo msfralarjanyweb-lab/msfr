@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Settings, FileText, Eye, EyeOff, Home, Layout, 
   Users, MessageSquare, Video, Newspaper, HelpCircle, 
@@ -9,11 +9,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial } from '../types';
 
+type AdminTab = 'sections' | 'articles' | 'testimonials' | 'password';
+
 const Admin: React.FC = () => {
   const { data, updateSection, toggleSectionVisibility, articles, addArticle, updateArticle, deleteArticle, testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useData();
   const { logout, changePassword } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'sections' | 'articles' | 'testimonials' | 'password'>('sections');
+  const [activeTab, setActiveTab] = useState<AdminTab | null>(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -40,6 +42,7 @@ const Admin: React.FC = () => {
     image: '',
     date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
   });
+  const contentRef = useRef<HTMLDivElement | null>(null);
 
   const handleLogout = () => {
     if (window.confirm('هل أنت متأكد من تسجيل الخروج؟')) {
@@ -61,6 +64,40 @@ const Admin: React.FC = () => {
     { id: 'faq', name: 'قسم الأسئلة الشائعة', icon: HelpCircle },
     { id: 'contact', name: 'قسم الاتصال', icon: Mail },
   ];
+
+  const dashboardCards: Array<{ id: AdminTab; title: string; description: string; icon: React.ElementType }> = [
+    {
+      id: 'sections',
+      title: 'إدارة الأقسام',
+      description: 'تحكم في إظهار أقسام الصفحة الرئيسية وتفعيلها أو تعديلها.',
+      icon: Layout,
+    },
+    {
+      id: 'articles',
+      title: 'إدارة المقالات',
+      description: 'أضف وحرر المقالات والصور المرتبطة بها من مكان واحد.',
+      icon: FileText,
+    },
+    {
+      id: 'testimonials',
+      title: 'آراء العملاء',
+      description: 'إدارة شهادات العملاء وإبراز أفضل قصص النجاح.',
+      icon: Star,
+    },
+    {
+      id: 'password',
+      title: 'تغيير كلمة المرور',
+      description: 'حافظ على أمان الحساب بتحديث بيانات الدخول بسهولة.',
+      icon: Lock,
+    },
+  ];
+
+  const handleCardSelect = (tab: AdminTab) => {
+    setActiveTab(tab);
+    requestAnimationFrame(() => {
+      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   const handleSaveSection = async (sectionId: string, formData: any) => {
     try {
@@ -149,93 +186,62 @@ const Admin: React.FC = () => {
             </div>
             <div className="flex items-center gap-3">
               <button
+                onClick={() => navigate('/')}
+                className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2 text-sm"
+              >
+                <Home size={18} />
+                <span>رئيسية الموقع</span>
+              </button>
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm"
               >
                 <LogOut size={18} />
                 <span>تسجيل الخروج</span>
               </button>
-              <button
-                onClick={async () => {
-                  if (window.confirm('هل أنت متأكد من إعادة تعيين جميع البيانات إلى القيم الافتراضية؟ سيتم حذف جميع التغييرات.')) {
-                    try {
-                      // ملاحظة: يمكنك إضافة وظيفة لإعادة تعيين البيانات في Supabase هنا
-                      alert('تم إعادة تعيين البيانات. يرجى تحديث الصفحة.');
-                      window.location.reload();
-                    } catch (error) {
-                      console.error('Error resetting data:', error);
-                      alert('حدث خطأ أثناء إعادة تعيين البيانات.');
-                    }
-                  }
-                }}
-                className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold hover:bg-red-100 transition-colors text-sm"
-              >
-                إعادة تعيين البيانات
-              </button>
             </div>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md mb-8 overflow-hidden">
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('sections')}
-              className={`flex-1 px-6 py-4 font-bold text-lg transition-colors ${
-                activeTab === 'sections'
-                  ? 'text-primary border-b-2 border-primary bg-primary-50'
-                  : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Layout size={20} />
-                <span>إدارة الأقسام</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('articles')}
-              className={`flex-1 px-6 py-4 font-bold text-lg transition-colors ${
-                activeTab === 'articles'
-                  ? 'text-primary border-b-2 border-primary bg-primary-50'
-                  : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <FileText size={20} />
-                <span>إدارة المقالات</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('testimonials')}
-              className={`flex-1 px-6 py-4 font-bold text-lg transition-colors ${
-                activeTab === 'testimonials'
-                  ? 'text-primary border-b-2 border-primary bg-primary-50'
-                  : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Star size={20} />
-                <span>آراء العملاء</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('password')}
-              className={`flex-1 px-6 py-4 font-bold text-lg transition-colors ${
-                activeTab === 'password'
-                  ? 'text-primary border-b-2 border-primary bg-primary-50'
-                  : 'text-gray-600 hover:text-primary hover:bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Lock size={20} />
-                <span>تغيير كلمة المرور</span>
-              </div>
-            </button>
-          </div>
+        {/* Quick Access Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {dashboardCards.map((card) => {
+            const CardIcon = card.icon;
+            const isActive = activeTab === card.id;
+            return (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => handleCardSelect(card.id)}
+                className={`text-right rounded-2xl p-5 bg-white border transition-all duration-300 shadow-md hover:-translate-y-1 hover:shadow-xl ${
+                  isActive ? 'border-primary shadow-2xl ring-1 ring-primary/20' : 'border-transparent'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                    <CardIcon size={24} />
+                  </div>
+                  <span className={`text-xs font-bold ${isActive ? 'text-primary' : 'text-gray-400'}`}>
+                    {isActive ? 'مفتوح' : 'اضغط للعرض'}
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-secondary mb-2">{card.title}</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">{card.description}</p>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Sections Management */}
-        {activeTab === 'sections' && (
+        <div ref={contentRef} className="mt-10 space-y-10">
+          {!activeTab && (
+            <div className="bg-white rounded-2xl shadow-md p-10 text-center text-gray-600">
+              <p className="text-lg font-bold text-secondary mb-2">أهلاً بك في لوحة التحكم</p>
+              <p className="text-sm text-gray-500">اختر أحد المربعات أعلاه لعرض أدوات الإدارة المناسبة.</p>
+            </div>
+          )}
+
+          {/* Sections Management */}
+          {activeTab === 'sections' && (
           <div className="space-y-4">
             {sections.map((section) => {
               const isVisible = data.visibility[section.id as keyof typeof data.visibility];
@@ -303,10 +309,10 @@ const Admin: React.FC = () => {
               );
             })}
           </div>
-        )}
+          )}
 
-        {/* Articles Management */}
-        {activeTab === 'articles' && (
+          {/* Articles Management */}
+          {activeTab === 'articles' && (
           <div className="space-y-6">
             {/* Add New Article Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -417,10 +423,10 @@ const Admin: React.FC = () => {
               ))}
             </div>
           </div>
-        )}
+          )}
 
-        {/* Testimonials Management */}
-        {activeTab === 'testimonials' && (
+          {/* Testimonials Management */}
+          {activeTab === 'testimonials' && (
           <div className="space-y-6">
             {/* Add New Testimonial Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
@@ -529,10 +535,10 @@ const Admin: React.FC = () => {
               ))}
             </div>
           </div>
-        )}
+          )}
 
-        {/* Password Change Management */}
-        {activeTab === 'password' && (
+          {/* Password Change Management */}
+          {activeTab === 'password' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-center gap-4 mb-6">
@@ -703,7 +709,8 @@ const Admin: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

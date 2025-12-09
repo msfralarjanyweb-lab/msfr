@@ -111,11 +111,6 @@ const Login: React.FC = () => {
               )}
             </button>
 
-            <div className="text-center pt-4 border-t border-gray-200">
-              <p className="text-xs text-gray-500">
-                الافتراضي: admin / admin123
-              </p>
-            </div>
           </form>
         </div>
       </div>
