@@ -9,7 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // معلومات الاتصال بقاعدة البيانات
-const connectionString = 'postgresql://postgres:Bodinho453@@db.rnwajknqcyjwwujxtaoq.supabase.co:5432/postgres';
+// يجب إضافة DATABASE_URL في ملف .env
+const connectionString = process.env.DATABASE_URL || '';
 
 // البيانات الافتراضية
 const defaultSiteData = {
@@ -223,6 +224,12 @@ const defaultTestimonials = [
 ];
 
 async function setupDatabase() {
+  if (!connectionString) {
+    console.error('❌ خطأ: DATABASE_URL غير موجود في متغيرات البيئة');
+    console.error('يرجى إضافة DATABASE_URL في ملف .env');
+    process.exit(1);
+  }
+
   const client = new Client({
     connectionString,
   });
