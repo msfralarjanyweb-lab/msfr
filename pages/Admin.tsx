@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Settings, FileText, Eye, EyeOff, Home, Layout, 
   Users, MessageSquare, Video, Newspaper, HelpCircle, 
-  Mail, Save, Plus, Edit, Trash2, X, Image as ImageIcon, LogOut, Star, Upload, Lock
+  Mail, Save, Plus, Edit, Trash2, X, Image as ImageIcon, LogOut, Star, Upload, Lock, CheckCircle2, AlertTriangle
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,14 @@ import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial } from '../types';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'password';
+
+type NotificationType = 'success' | 'error';
+
+interface AdminNotification {
+  id: number;
+  message: string;
+  type: NotificationType;
+}
 
 const Admin: React.FC = () => {
   const { data, updateSection, toggleSectionVisibility, articles, addArticle, updateArticle, deleteArticle, testimonials, addTestimonial, updateTestimonial, deleteTestimonial } = useData();
@@ -43,6 +51,33 @@ const Admin: React.FC = () => {
     date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
   });
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
+  const notificationTimeouts = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  const removeNotification = useCallback((id: number) => {
+    setNotifications((prev) => prev.filter((notification) => notification.id !== id));
+    if (notificationTimeouts.current[id]) {
+      clearTimeout(notificationTimeouts.current[id]);
+      delete notificationTimeouts.current[id];
+    }
+  }, []);
+
+  const showNotification = useCallback((message: string, type: NotificationType = 'success') => {
+    const id = Date.now() + Math.random();
+    setNotifications((prev) => [...prev, { id, message, type }]);
+
+    const timeoutId = setTimeout(() => {
+      removeNotification(id);
+    }, 4500);
+
+    notificationTimeouts.current[id] = timeoutId;
+  }, [removeNotification]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(notificationTimeouts.current).forEach(clearTimeout);
+    };
+  }, []);
 
   const handleLogout = () => {
     if (window.confirm('هل أنت متأكد من تسجيل الخروج؟')) {
@@ -99,14 +134,30 @@ const Admin: React.FC = () => {
     });
   };
 
-  const handleSaveSection = async (sectionId: string, formData: any) => {
+  const handleToggleSectionVisibility = async (
+    sectionId: keyof typeof data.visibility,
+    sectionName: string,
+    currentlyVisible: boolean
+  ) => {
+    try {
+      await toggleSectionVisibility(sectionId);
+      showNotification(
+        currentlyVisible ? `تم تعطيل ${sectionName}` : `تم تفعيل ${sectionName}`
+      );
+    } catch (error) {
+      console.error('Error toggling section visibility:', error);
+      showNotification('حدث خطأ أثناء تحديث حالة القسم. يرجى المحاولة مرة أخرى.', 'error');
+    }
+  };
+
+  const handleSaveSection = async (sectionId: string, formData: any, sectionName?: string) => {
     try {
       await updateSection(sectionId as keyof typeof data, formData);
       setEditingSection(null);
-      alert('تم حفظ التغييرات بنجاح');
+      showNotification(sectionName ? `تم حفظ ${sectionName} بنجاح` : 'تم حفظ التغييرات بنجاح');
     } catch (error) {
       console.error('Error saving section:', error);
-      alert('حدث خطأ أثناء حفظ التغييرات. يرجى المحاولة مرة أخرى.');
+      showNotification('حدث خطأ أثناء حفظ التغييرات. يرجى المحاولة مرة أخرى.', 'error');
     }
   };
 
@@ -116,8 +167,9 @@ const Admin: React.FC = () => {
         ...newArticle,
         image: newArticle.image?.trim() || '/images/article.png',
       } as Article;
+      const isEditing = editingArticle !== null;
       
-      if (editingArticle !== null) {
+      if (isEditing) {
         await updateArticle(editingArticle, articleToSave);
       } else {
         await addArticle(articleToSave);
@@ -133,10 +185,10 @@ const Admin: React.FC = () => {
         image: '',
       });
       setEditingArticle(null);
-      alert('تم حفظ المقال بنجاح');
+      showNotification(isEditing ? 'تم تحديث المقال بنجاح' : 'تم إضافة مقال بنجاح');
     } catch (error) {
       console.error('Error saving article:', error);
-      alert('حدث خطأ أثناء حفظ المقال. يرجى المحاولة مرة أخرى.');
+      showNotification('حدث خطأ أثناء حفظ المقال. يرجى المحاولة مرة أخرى.', 'error');
     }
   };
 
@@ -146,8 +198,9 @@ const Admin: React.FC = () => {
         ...newTestimonial,
         image: newTestimonial.image?.trim() || '/images/client.png',
       } as Testimonial;
+      const isEditing = editingTestimonial !== null;
       
-      if (editingTestimonial !== null) {
+      if (isEditing) {
         await updateTestimonial(editingTestimonial, testimonialToSave);
       } else {
         await addTestimonial(testimonialToSave);
@@ -162,16 +215,57 @@ const Admin: React.FC = () => {
         date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
       });
       setEditingTestimonial(null);
-      alert('تم حفظ رأي العميل بنجاح');
+      showNotification(isEditing ? 'تم تحديث رأي العميل بنجاح' : 'تم إضافة رأي عميل جديد بنجاح');
     } catch (error) {
       console.error('Error saving testimonial:', error);
-      alert('حدث خطأ أثناء حفظ رأي العميل. يرجى المحاولة مرة أخرى.');
+      showNotification('حدث خطأ أثناء حفظ رأي العميل. يرجى المحاولة مرة أخرى.', 'error');
     }
   };
 
   return (
-    <div className="min-h-screen bg-light pt-24 pb-12">
-      <div className="container mx-auto px-4 md:px-6">
+    <>
+      <div
+        className="fixed top-24 inset-x-0 flex flex-col items-center gap-3 px-4 z-50 pointer-events-none"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {notifications.map((notification) => {
+          const isSuccess = notification.type === 'success';
+          return (
+            <div
+              key={notification.id}
+              className={`w-full max-w-md rounded-2xl border shadow-lg pointer-events-auto transition-transform origin-top ${
+                isSuccess
+                  ? 'border-green-200 bg-green-50'
+                  : 'border-red-200 bg-red-50'
+              }`}
+            >
+              <div className="flex items-start gap-3 p-4">
+                <div
+                  className={`p-2 rounded-full ${
+                    isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}
+                >
+                  {isSuccess ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+                </div>
+                <div className="flex-1 text-sm font-semibold text-secondary leading-relaxed">
+                  {notification.message}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeNotification(notification.id)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  aria-label="إغلاق التنبيه"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="min-h-screen bg-light pt-24 pb-12">
+        <div className="container mx-auto px-4 md:px-6">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8 border-r-4 border-primary">
           <div className="flex items-center justify-between">
@@ -267,7 +361,12 @@ const Admin: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => toggleSectionVisibility(section.id as keyof typeof data.visibility)}
+                          onClick={() =>
+                            handleToggleSectionVisibility(
+                              section.id as keyof typeof data.visibility,
+                              section.name,
+                              isVisible
+                            )}
                           className={`px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 ${
                             isVisible
                               ? 'bg-red-50 text-red-600 hover:bg-red-100'
@@ -301,7 +400,7 @@ const Admin: React.FC = () => {
                     <SectionEditor
                       sectionId={section.id}
                       sectionData={sectionData}
-                      onSave={(formData) => handleSaveSection(section.id, formData)}
+                      onSave={(formData) => handleSaveSection(section.id, formData, section.name)}
                       onCancel={() => setEditingSection(null)}
                     />
                   )}
@@ -356,6 +455,7 @@ const Admin: React.FC = () => {
                       image: '',
                     });
                   }}
+                  notify={showNotification}
                 />
               </div>
             )}
@@ -403,10 +503,10 @@ const Admin: React.FC = () => {
                               if (window.confirm('هل أنت متأكد من حذف هذا المقال؟')) {
                                 try {
                                   await deleteArticle(index);
-                                  alert('تم حذف المقال بنجاح');
+                                  showNotification('تم حذف المقال بنجاح');
                                 } catch (error) {
                                   console.error('Error deleting article:', error);
-                                  alert('حدث خطأ أثناء حذف المقال.');
+                                  showNotification('حدث خطأ أثناء حذف المقال.', 'error');
                                 }
                               }
                             }}
@@ -470,6 +570,7 @@ const Admin: React.FC = () => {
                       date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
                     });
                   }}
+                  notify={showNotification}
                 />
               </div>
             )}
@@ -515,10 +616,10 @@ const Admin: React.FC = () => {
                               if (window.confirm('هل أنت متأكد من حذف هذا الرأي؟')) {
                                 try {
                                   await deleteTestimonial(index);
-                                  alert('تم حذف رأي العميل بنجاح');
+                                  showNotification('تم حذف رأي العميل بنجاح');
                                 } catch (error) {
                                   console.error('Error deleting testimonial:', error);
-                                  alert('حدث خطأ أثناء حذف رأي العميل.');
+                                  showNotification('حدث خطأ أثناء حذف رأي العميل.', 'error');
                                 }
                               }
                             }}
@@ -711,8 +812,9 @@ const Admin: React.FC = () => {
           </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -911,7 +1013,8 @@ const ArticleForm: React.FC<{
   onChange: (article: Partial<Article>) => void;
   onSave: () => void;
   onCancel: () => void;
-}> = ({ article, onChange, onSave, onCancel }) => {
+  notify?: (message: string, type?: NotificationType) => void;
+}> = ({ article, onChange, onSave, onCancel, notify }) => {
   return (
     <div className="space-y-4">
       <InputField
@@ -944,6 +1047,7 @@ const ArticleForm: React.FC<{
         label="صورة المقال"
         value={article.image || ''}
         onChange={(v) => onChange({ ...article, image: v })}
+        notify={notify}
       />
       <div className="flex items-center gap-4 pt-4">
         <button
@@ -1009,7 +1113,8 @@ const ImageUploadField: React.FC<{
   label: string;
   value: string;
   onChange: (value: string) => void;
-}> = ({ label, value, onChange }) => {
+  notify?: (message: string, type?: NotificationType) => void;
+}> = ({ label, value, onChange, notify }) => {
   // تحديد نوع القيمة الحالية (base64 أو رابط)
   const isBase64 = value.startsWith('data:image');
   const [uploadMethod, setUploadMethod] = useState<'url' | 'file'>(isBase64 ? 'file' : 'url');
@@ -1020,13 +1125,13 @@ const ImageUploadField: React.FC<{
     if (file) {
       // التحقق من نوع الملف
       if (!file.type.startsWith('image/')) {
-        alert('الرجاء اختيار ملف صورة صالح');
+        notify?.('الرجاء اختيار ملف صورة صالح', 'error');
         return;
       }
       
       // التحقق من حجم الملف (حد أقصى 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('حجم الملف كبير جداً. الحد الأقصى هو 5MB');
+        notify?.('حجم الملف كبير جداً. الحد الأقصى هو 5MB', 'error');
         return;
       }
 
@@ -1037,7 +1142,7 @@ const ImageUploadField: React.FC<{
         setUploadMethod('file');
       };
       reader.onerror = () => {
-        alert('حدث خطأ أثناء قراءة الملف');
+        notify?.('حدث خطأ أثناء قراءة الملف', 'error');
       };
       reader.readAsDataURL(file);
     }
@@ -1158,7 +1263,8 @@ const TestimonialForm: React.FC<{
   onChange: (testimonial: Partial<Testimonial>) => void;
   onSave: () => void;
   onCancel: () => void;
-}> = ({ testimonial, onChange, onSave, onCancel }) => {
+  notify?: (message: string, type?: NotificationType) => void;
+}> = ({ testimonial, onChange, onSave, onCancel, notify }) => {
   return (
     <div className="space-y-4">
       <InputField
@@ -1181,6 +1287,7 @@ const TestimonialForm: React.FC<{
         label="صورة العميل"
         value={testimonial.image || ''}
         onChange={(v) => onChange({ ...testimonial, image: v })}
+        notify={notify}
       />
       <InputField
         label="التاريخ"
