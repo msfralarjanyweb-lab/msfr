@@ -42,3 +42,108 @@ html {
   background: radial-gradient(circle, var(--tw-gradient-stops));
 }
 
+/* Swiper Custom Styles */
+.swiper {
+  padding-bottom: 50px !important;
+}
+
+
+.swiper-button-prev-testimonials,
+.swiper-button-next-testimonials,
+.swiper-button-prev-videos,
+.swiper-button-next-videos,
+.swiper-button-prev-articles,
+.swiper-button-next-articles {
+  position: relative !important;
+  margin: 0 !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.swiper-button-prev-testimonials::after,
+.swiper-button-next-testimonials::after,
+.swiper-button-prev-videos::after,
+.swiper-button-next-videos::after,
+.swiper-button-prev-articles::after,
+.swiper-button-next-articles::after {
+  display: none !important;
+}
+
+/* Enhanced hover and active states */
+.swiper-button-prev-testimonials:hover,
+.swiper-button-next-testimonials:hover,
+.swiper-button-prev-videos:hover,
+.swiper-button-next-videos:hover,
+.swiper-button-prev-articles:hover,
+.swiper-button-next-articles:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.swiper-button-prev-testimonials:active,
+.swiper-button-next-testimonials:active,
+.swiper-button-prev-videos:active,
+.swiper-button-next-videos:active,
+.swiper-button-prev-articles:active,
+.swiper-button-next-articles:active {
+  transform: translateY(0) scale(0.95) !important;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .swiper-button-prev-testimonials,
+  .swiper-button-next-testimonials,
+  .swiper-button-prev-videos,
+  .swiper-button-next-videos,
+  .swiper-button-prev-articles,
+  .swiper-button-next-articles {
+    width: 40px !important;
+    height: 40px !important;
+    border-width: 1.5px !important;
+  }
+}
+
+/* RTL Support for Swiper */
+[dir="rtl"] .swiper {
+  direction: rtl;
+}
+
+/* WhatsApp Floating Button */
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 3s ease-in-out infinite;
+}
+
+/* Ensure WhatsApp button doesn't cover content on mobile */
+@media (max-width: 640px) {
+  /* Adjust position on very small screens */
+  .fixed.bottom-6.right-6 {
+    bottom: 1.25rem;
+    right: 1.25rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    z-index: 40; /* Lower than modals but above content */
+  }
+  
+  /* Hide tooltip on mobile to save space */
+  .fixed.bottom-6.right-6 span {
+    display: none;
+  }
+}
+
+/* Hide WhatsApp button on print */
+@media print {
+  .fixed.bottom-6.right-6 {
+    display: none;
+  }
+}
+

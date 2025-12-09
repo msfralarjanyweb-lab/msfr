@@ -45,6 +45,7 @@ export interface FAQItem {
 export interface Article {
   title: string;
   excerpt: string;
+  content?: string; // المحتوى الكامل للمقال
   date: string;
   category: string;
   image: string;
