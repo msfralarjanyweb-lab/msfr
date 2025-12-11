@@ -268,7 +268,7 @@ const Admin: React.FC = () => {
         <div className="container mx-auto px-4 md:px-6">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8 border-r-4 border-primary">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center">
                 <Settings className="text-primary" size={32} />
@@ -278,17 +278,17 @@ const Admin: React.FC = () => {
                 <p className="text-gray-600 mt-1">إدارة محتوى الموقع</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row w-full lg:w-auto items-stretch sm:items-center gap-3">
               <button
                 onClick={() => navigate('/')}
-                className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2 text-sm"
+                className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2 text-sm"
               >
                 <Home size={18} />
                 <span>رئيسية الموقع</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center gap-2 text-sm"
+                className="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 text-sm"
               >
                 <LogOut size={18} />
                 <span>تسجيل الخروج</span>
@@ -345,7 +345,7 @@ const Admin: React.FC = () => {
               return (
                 <div key={section.id} className="bg-white rounded-lg shadow-md overflow-hidden">
                   <div className="p-6 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                           isVisible ? 'bg-primary-50' : 'bg-gray-100'
@@ -359,7 +359,7 @@ const Admin: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
                         <button
                           onClick={() =>
                             handleToggleSectionVisibility(
@@ -367,7 +367,7 @@ const Admin: React.FC = () => {
                               section.name,
                               isVisible
                             )}
-                          className={`px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 ${
+                          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
                             isVisible
                               ? 'bg-red-50 text-red-600 hover:bg-red-100'
                               : 'bg-green-50 text-green-600 hover:bg-green-100'
@@ -387,7 +387,7 @@ const Admin: React.FC = () => {
                         </button>
                         <button
                           onClick={() => setEditingSection(editingSection === section.id ? null : section.id)}
-                          className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2"
+                          className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
                         >
                           <Edit size={18} />
                           <span>تعديل</span>
@@ -487,13 +487,13 @@ const Admin: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 mt-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                           <button
                             onClick={() => {
                               setEditingArticle(index);
                               setNewArticle({ ...articles[index] });
                             }}
-                            className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2"
+                            className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
                           >
                             <Edit size={18} />
                             <span>تعديل</span>
@@ -510,7 +510,7 @@ const Admin: React.FC = () => {
                                 }
                               }
                             }}
-                            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold hover:bg-red-100 transition-colors flex items-center gap-2"
+                            className="w-full sm:w-auto px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                           >
                             <Trash2 size={18} />
                             <span>حذف</span>
@@ -600,13 +600,13 @@ const Admin: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 mt-4">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                           <button
                             onClick={() => {
                               setEditingTestimonial(index);
                               setNewTestimonial({ ...testimonials[index] });
                             }}
-                            className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2"
+                            className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
                           >
                             <Edit size={18} />
                             <span>تعديل</span>
@@ -623,7 +623,7 @@ const Admin: React.FC = () => {
                                 }
                               }
                             }}
-                            className="px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold hover:bg-red-100 transition-colors flex items-center gap-2"
+                            className="w-full sm:w-auto px-4 py-2 bg-red-50 text-red-600 rounded-lg font-bold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                           >
                             <Trash2 size={18} />
                             <span>حذف</span>
@@ -765,11 +765,11 @@ const Admin: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex items-center gap-4 pt-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
                   <button
                     type="submit"
                     disabled={isChangingPassword}
-                    className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isChangingPassword ? (
                       <>
@@ -794,7 +794,7 @@ const Admin: React.FC = () => {
                       setPasswordError('');
                       setPasswordSuccess(false);
                     }}
-                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center gap-2"
+                    className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
                   >
                     <X size={20} />
                     <span>إلغاء</span>
@@ -985,10 +985,10 @@ const SectionEditor: React.FC<{
           </>
         )}
 
-        <div className="flex items-center gap-4 pt-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
           <button
             type="submit"
-            className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
           >
             <Save size={20} />
             <span>حفظ التغييرات</span>
@@ -996,7 +996,7 @@ const SectionEditor: React.FC<{
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center gap-2"
+            className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
           >
             <X size={20} />
             <span>إلغاء</span>
@@ -1049,17 +1049,17 @@ const ArticleForm: React.FC<{
         onChange={(v) => onChange({ ...article, image: v })}
         notify={notify}
       />
-      <div className="flex items-center gap-4 pt-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
           onClick={onSave}
-          className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
           <Save size={20} />
           <span>حفظ</span>
         </button>
         <button
           onClick={onCancel}
-          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
         >
           <X size={20} />
           <span>إلغاء</span>
@@ -1160,11 +1160,11 @@ const ImageUploadField: React.FC<{
       <label className="block text-sm font-bold text-secondary mb-2">{label}</label>
       
       {/* طريقة الرفع */}
-      <div className="flex items-center gap-4 mb-3">
+      <div className="flex flex-wrap items-center gap-3 mb-3">
         <button
           type="button"
           onClick={() => setUploadMethod('url')}
-          className={`px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 ${
+          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
             uploadMethod === 'url'
               ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1179,7 +1179,7 @@ const ImageUploadField: React.FC<{
             setUploadMethod('file');
             fileInputRef.current?.click();
           }}
-          className={`px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 ${
+          className={`w-full sm:w-auto px-4 py-2 rounded-lg font-bold transition-colors flex items-center justify-center gap-2 ${
             uploadMethod === 'file'
               ? 'bg-primary text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1294,17 +1294,17 @@ const TestimonialForm: React.FC<{
         value={testimonial.date || ''}
         onChange={(v) => onChange({ ...testimonial, date: v })}
       />
-      <div className="flex items-center gap-4 pt-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
           onClick={onSave}
-          className="px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
           <Save size={20} />
           <span>حفظ</span>
         </button>
         <button
           onClick={onCancel}
-          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
         >
           <X size={20} />
           <span>إلغاء</span>
