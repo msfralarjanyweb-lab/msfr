@@ -83,11 +83,11 @@ const Header: React.FC = () => {
 
           {/* Contact & Mobile Toggle */}
           <div className="flex items-center gap-4">
-            <a href="tel:+966509579993" className="hidden lg:flex items-center gap-2 text-secondary font-bold text-lg">
+            <a href="tel:+966553553042" className="hidden lg:flex items-center gap-2 text-secondary font-bold text-lg">
               <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center text-primary">
                 <Phone size={20} />
               </div>
-              <span dir="ltr">+966509579993</span>
+              <span dir="ltr">+966553553042</span>
             </a>
             <button 
               className="md:hidden text-secondary p-2"

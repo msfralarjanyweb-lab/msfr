@@ -2,6 +2,7 @@ import React from 'react';
 import { MapPin, Mail, Clock, Facebook, Twitter, Youtube } from 'lucide-react';
 import Button from './Button';
 import { NavItem } from '../types';
+import { useData } from '../contexts/DataContext';
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'الرئيسية', href: '#home' },
@@ -27,6 +28,11 @@ const handleNavClick = (href: string) => {
 };
 
 const Footer: React.FC = () => {
+  const contextData = useData();
+  const data = contextData?.data;
+  const address = data?.contact?.address || 'طريق الملك فهد، الرياض، المملكة العربية السعودية';
+  const email = data?.contact?.email || 'info@al-arjani-law.com';
+
   return (
     <footer className="bg-secondary text-white pt-24 pb-12 border-t border-secondary-dark">
       <div className="container mx-auto px-4 md:px-6">
@@ -95,14 +101,14 @@ const Footer: React.FC = () => {
             <MapPin className="text-primary w-8 h-8" />
             <div>
               <h5 className="font-bold text-lg">المكتب الرئيسي</h5>
-              <p className="text-gray-400 text-sm">طريق الملك فهد، الرياض، المملكة العربية السعودية</p>
+              <p className="text-gray-400 text-sm">{address}</p>
             </div>
           </div>
           <div className="flex items-center gap-5">
             <Mail className="text-primary w-8 h-8" />
             <div>
               <h5 className="font-bold text-lg">البريد الإلكتروني</h5>
-              <p className="text-gray-400 text-sm">info@al-arjani-law.com</p>
+              <p className="text-gray-400 text-sm">{email}</p>
             </div>
           </div>
           <div className="flex items-center gap-5">

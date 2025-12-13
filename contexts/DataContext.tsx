@@ -141,10 +141,10 @@ export const defaultData: SiteData = {
     items: SERVICES,
   },
   stats: {
-    clients: '978',
-    compensation: '66 M',
-    experience: '25',
-    successRate: '99%',
+    clients: 'السرية',
+    compensation: 'السرعة',
+    experience: 'الإنجاز',
+    successRate: 'الأمانة',
     title: 'نقدم حلولاً فعالة آمنة ومستدامة.',
     description: 'القانون في صفك، ثق بنا! سيقوم فريق المحامين ذوي الخبرة لدينا بإثبات ذلك ومساعدتك على النجاح في قضيتك.',
     image: '/images/lawyer3.png',
@@ -153,7 +153,7 @@ export const defaultData: SiteData = {
     subtitle: 'استشارة',
     title: 'احصل على استشارة مجانية!',
     description: 'سندرس حالتك مجاناً ونساعدك على النجاح. اتصل بنا اليوم لتبدأ الخطوة الأولى.',
-    phone: '+966509579993',
+    phone: '+966553553042',
     buttonText: 'أرسل طلباً',
   },
   features: {
@@ -189,9 +189,9 @@ export const defaultData: SiteData = {
   contact: {
     subtitle: 'اتصل بنا',
     title: 'نحن هنا لمساعدتك',
-    description: 'تواصل معنا اليوم واحصل على استشارة قانونية مجانية',
+    description: 'زوروا مكتبنا في الرياض أو تواصلوا معنا مباشرة للحصول على استشارة قانونية.',
     address: 'طريق الملك فهد، الرياض، المملكة العربية السعودية',
-    phone: '+966509579993',
+    phone: '+966553553042',
     email: 'info@al-arjani-law.com',
   },
   visibility: {
