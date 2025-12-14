@@ -179,7 +179,7 @@ export const defaultData: SiteData = {
     subtitle: 'المكتبة المرئية',
     title: 'فيديوهات توعوية وقانونية',
     description: 'تابع أحدث الشروحات القانونية والأخبار عبر قنواتنا على وسائل التواصل الاجتماعي.',
-    items: FALLBACK_VIDEOS,
+    items: [],
   },
   news: {
     subtitle: 'الأخبار',
@@ -255,7 +255,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [articles, setArticles] = useState<Article[]>(ARTICLES);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(TESTIMONIALS);
   const [clients, setClients] = useState<Client[]>([]);
-  const [videos, setVideos] = useState<VideoItem[]>(FALLBACK_VIDEOS);
+  const [videos, setVideos] = useState<VideoItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // تحميل البيانات من Supabase عند بدء التطبيق
@@ -325,23 +325,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!videosError && videosData && videosData.length > 0) {
-      const formattedVideos: VideoItem[] = videosData.map((item: any) => ({
-        title: item.title,
-        thumbnail: item.thumbnail,
-        duration: item.duration,
-        url: item.url,
-      }));
-      setVideos(formattedVideos);
-      
-      setData(prev => ({
-        ...prev,
-        videos: {
-          ...prev.videos,
-          items: formattedVideos,
-        },
-      }));
+    if (videosError) {
+      console.error('Error reloading videos:', videosError);
+      return;
     }
+
+    // معالجة الحالة عندما لا توجد فيديوهات
+    const formattedVideos: VideoItem[] = videosData && videosData.length > 0
+      ? videosData.map((item: any) => ({
+          title: item.title,
+          thumbnail: item.thumbnail,
+          duration: item.duration,
+          url: item.url,
+        }))
+      : [];
+
+    setVideos(formattedVideos);
+    
+    setData(prev => ({
+      ...prev,
+      videos: {
+        ...prev.videos,
+        items: formattedVideos,
+      },
+    }));
   };
 
   const loadDataFromSupabase = async () => {
@@ -808,24 +815,45 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteVideo = async (index: number) => {
     try {
-      // الحصول على ID الفيديو من قاعدة البيانات
-      const { data: videosData } = await supabase
-        .from('videos')
-        .select('id')
-        .order('created_at', { ascending: false });
-
-      if (!videosData || !videosData[index]) {
-        throw new Error('Video not found');
+      // التحقق من أن الفهرس صحيح
+      if (index < 0 || index >= videos.length) {
+        throw new Error('Video index out of range');
       }
 
-      const videoId = videosData[index].id;
+      // الحصول على الفيديو من القائمة المحلية
+      const videoToDelete = videos[index];
+      
+      if (!videoToDelete || !videoToDelete.url) {
+        throw new Error('Video not found in local list');
+      }
 
-      const { error } = await supabase
+      // البحث عن الفيديو في قاعدة البيانات باستخدام URL كمعرف فريد
+      const { data: videosData, error: fetchError } = await supabase
+        .from('videos')
+        .select('id, url')
+        .eq('url', videoToDelete.url)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (!videosData || videosData.length === 0) {
+        throw new Error('Video not found in database');
+      }
+
+      // استخدام أول نتيجة (يجب أن تكون فريدة)
+      const videoId = videosData[0].id;
+
+      // حذف الفيديو من قاعدة البيانات
+      const { error: deleteError } = await supabase
         .from('videos')
         .delete()
         .eq('id', videoId);
 
-      if (error) throw error;
+      if (deleteError) {
+        throw deleteError;
+      }
 
       // إعادة تحميل الفيديوهات لضمان الترتيب الصحيح
       await reloadVideos();
@@ -907,7 +935,7 @@ export const useData = () => {
       deleteClient: async () => {
         console.warn('deleteClient called outside DataProvider');
       },
-      videos: FALLBACK_VIDEOS,
+      videos: [],
       addVideo: async () => {
         console.warn('addVideo called outside DataProvider');
       },

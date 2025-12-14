@@ -8,7 +8,7 @@ import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
-import { getVideoThumbnail, detectVideoPlatform } from '../utils/videoThumbnail';
+import { getVideoThumbnail, getVideoInfo, detectVideoPlatform } from '../utils/videoThumbnail';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -1710,7 +1710,7 @@ const VideoForm: React.FC<{
 }> = ({ video, onChange, onSave, onCancel, notify }) => {
   const [isLoadingThumbnail, setIsLoadingThumbnail] = React.useState(false);
 
-  // جلب الصورة المصغرة تلقائياً عند تغيير رابط الفيديو
+  // جلب الصورة المصغرة والمدة تلقائياً عند تغيير رابط الفيديو
   const handleUrlChange = async (url: string) => {
     onChange({ ...video, url });
     
@@ -1722,20 +1722,29 @@ const VideoForm: React.FC<{
     // التحقق من نوع المنصة
     const platform = detectVideoPlatform(url);
     
-    // إذا لم يتم التعرف على المنصة، لا نحاول جلب الصورة
+    // إذا لم يتم التعرف على المنصة، لا نحاول جلب المعلومات
     if (platform === 'unknown') {
       return;
     }
 
-    // جلب الصورة المصغرة
+    // جلب الصورة المصغرة والمدة
     setIsLoadingThumbnail(true);
     try {
-      const thumbnail = await getVideoThumbnail(url);
-      onChange({ ...video, url, thumbnail });
-      notify?.('تم جلب الصورة المصغرة تلقائياً', 'success');
+      const info = await getVideoInfo(url);
+      const updatedVideo = { ...video, url, thumbnail: info.thumbnail };
+      
+      // إذا تم جلب المدة، نضيفها
+      if (info.duration) {
+        updatedVideo.duration = info.duration;
+        onChange(updatedVideo);
+        notify?.('تم جلب الصورة المصغرة والمدة تلقائياً', 'success');
+      } else {
+        onChange(updatedVideo);
+        notify?.('تم جلب الصورة المصغرة تلقائياً. يمكنك إدخال المدة يدوياً.', 'success');
+      }
     } catch (error) {
-      console.error('Error fetching thumbnail:', error);
-      notify?.('فشل جلب الصورة المصغرة تلقائياً. يمكنك إضافة الصورة يدوياً.', 'error');
+      console.error('Error fetching video info:', error);
+      notify?.('فشل جلب معلومات الفيديو تلقائياً. يمكنك إضافة المعلومات يدوياً.', 'error');
     } finally {
       setIsLoadingThumbnail(false);
     }

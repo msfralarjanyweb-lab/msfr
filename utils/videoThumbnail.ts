@@ -6,7 +6,37 @@
 export interface VideoPlatform {
   type: 'youtube' | 'tiktok' | 'snapchat' | 'unknown';
   thumbnail: string;
+  duration?: string;
   videoId?: string;
+}
+
+/**
+ * تحويل الثواني إلى صيغة MM:SS أو HH:MM:SS
+ */
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * تحويل صيغة ISO 8601 (PT4M13S) إلى MM:SS
+ */
+function parseISO8601Duration(duration: string): string {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return '00:00';
+  
+  const hours = parseInt(match[1] || '0', 10);
+  const minutes = parseInt(match[2] || '0', 10);
+  const seconds = parseInt(match[3] || '0', 10);
+  
+  const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+  return formatDuration(totalSeconds);
 }
 
 /**
@@ -48,10 +78,10 @@ function getYouTubeThumbnail(videoId: string): string {
 }
 
 /**
- * جلب الصورة المصغرة من رابط تيك توك
+ * جلب الصورة المصغرة والمدة من رابط تيك توك
  * ملاحظة: تيك توك لا يوفر API عام، لذلك نستخدم oEmbed
  */
-async function getTikTokThumbnail(url: string): Promise<string> {
+async function getTikTokInfo(url: string): Promise<{ thumbnail: string; duration?: string }> {
   try {
     // استخدام oEmbed API
     const oembedUrl = `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`;
@@ -68,17 +98,19 @@ async function getTikTokThumbnail(url: string): Promise<string> {
     
     const data = await response.json();
     
-    if (data.thumbnail_url) {
-      return data.thumbnail_url;
-    }
+    return {
+      thumbnail: data.thumbnail_url || '/images/service.png',
+      duration: undefined, // تيك توك oEmbed لا يوفر المدة
+    };
   } catch (error) {
-    console.error('Error fetching TikTok thumbnail:', error);
-    // في حالة فشل الجلب، يمكننا محاولة استخدام صورة افتراضية من تيك توك
-    // أو إرجاع صورة افتراضية من الموقع
+    console.error('Error fetching TikTok info:', error);
   }
   
   // صورة افتراضية إذا فشل الجلب
-  return '/images/service.png';
+  return {
+    thumbnail: '/images/service.png',
+    duration: undefined,
+  };
 }
 
 /**
@@ -135,7 +167,8 @@ export async function getVideoThumbnail(url: string): Promise<string> {
     
     case 'tiktok': {
       try {
-        return await getTikTokThumbnail(url);
+        const info = await getTikTokInfo(url);
+        return info.thumbnail;
       } catch (error) {
         console.error('Error fetching TikTok thumbnail:', error);
       }
@@ -155,11 +188,124 @@ export async function getVideoThumbnail(url: string): Promise<string> {
 }
 
 /**
+ * جلب مدة الفيديو من رابط يوتيوب
+ * ملاحظة: YouTube oEmbed لا يوفر المدة مباشرة
+ * يمكن استخدام YouTube Data API v3 مع API key للحصول على المدة
+ * لكن بدون API key، سنترك المدة فارغة ويمكن للمستخدم إدخالها يدوياً
+ */
+async function getYouTubeDuration(videoId: string): Promise<string | undefined> {
+  // YouTube oEmbed API لا يوفر المدة
+  // لجلب المدة، نحتاج إلى YouTube Data API v3 مع API key
+  // أو يمكن استخدام iframe API لكنه يحتاج إلى تفاعل المستخدم
+  
+  // سنترك المدة فارغة ويمكن للمستخدم إدخالها يدوياً
+  // أو يمكن إضافة API key لاحقاً إذا لزم الأمر
+  return undefined;
+}
+
+/**
+ * جلب مدة الفيديو من رابط الفيديو
+ */
+export async function getVideoDuration(url: string): Promise<string | undefined> {
+  if (!url) {
+    return undefined;
+  }
+
+  const platform = detectVideoPlatform(url);
+
+  switch (platform) {
+    case 'youtube': {
+      const videoId = extractYouTubeVideoId(url);
+      if (videoId) {
+        // يوتيوب oEmbed لا يوفر المدة مباشرة
+        // يمكن استخدام YouTube Data API مع API key، لكننا سنتركه اختياري
+        // أو يمكن استخدام iframe API
+        return undefined;
+      }
+      break;
+    }
+    
+    case 'tiktok': {
+      try {
+        const info = await getTikTokInfo(url);
+        return info.duration;
+      } catch (error) {
+        console.error('Error fetching TikTok duration:', error);
+      }
+      break;
+    }
+    
+    case 'snapchat': {
+      // سناب شات لا يوفر API للمدة
+      return undefined;
+    }
+    
+    default:
+      break;
+  }
+
+  return undefined;
+}
+
+/**
+ * جلب معلومات الفيديو الكاملة (الصورة المصغرة والمدة)
+ */
+export async function getVideoInfo(url: string): Promise<{ thumbnail: string; duration?: string }> {
+  if (!url) {
+    return {
+      thumbnail: '/images/service.png',
+      duration: undefined,
+    };
+  }
+
+  const platform = detectVideoPlatform(url);
+  let thumbnail = '/images/service.png';
+  let duration: string | undefined = undefined;
+
+  switch (platform) {
+    case 'youtube': {
+      const videoId = extractYouTubeVideoId(url);
+      if (videoId) {
+        thumbnail = getYouTubeThumbnail(videoId);
+        // محاولة جلب المدة من oEmbed (قد لا تعمل بدون API key)
+        duration = await getYouTubeDuration(videoId);
+      }
+      break;
+    }
+    
+    case 'tiktok': {
+      try {
+        const info = await getTikTokInfo(url);
+        thumbnail = info.thumbnail;
+        duration = info.duration;
+      } catch (error) {
+        console.error('Error fetching TikTok info:', error);
+      }
+      break;
+    }
+    
+    case 'snapchat': {
+      thumbnail = getSnapchatThumbnail();
+      break;
+    }
+    
+    default:
+      break;
+  }
+
+  return {
+    thumbnail,
+    duration,
+  };
+}
+
+/**
  * استخراج معلومات الفيديو من الرابط
  */
 export async function extractVideoInfo(url: string): Promise<VideoPlatform> {
   const platform = detectVideoPlatform(url);
   let thumbnail = '/images/service.png';
+  let duration: string | undefined = undefined;
   let videoId: string | undefined;
 
   switch (platform) {
@@ -167,6 +313,7 @@ export async function extractVideoInfo(url: string): Promise<VideoPlatform> {
       videoId = extractYouTubeVideoId(url) || undefined;
       if (videoId) {
         thumbnail = getYouTubeThumbnail(videoId);
+        duration = await getYouTubeDuration(videoId);
       }
       break;
     }
@@ -174,9 +321,11 @@ export async function extractVideoInfo(url: string): Promise<VideoPlatform> {
     case 'tiktok': {
       videoId = extractTikTokVideoId(url) || undefined;
       try {
-        thumbnail = await getTikTokThumbnail(url);
+        const info = await getTikTokInfo(url);
+        thumbnail = info.thumbnail;
+        duration = info.duration;
       } catch (error) {
-        console.error('Error fetching TikTok thumbnail:', error);
+        console.error('Error fetching TikTok info:', error);
       }
       break;
     }
@@ -193,6 +342,7 @@ export async function extractVideoInfo(url: string): Promise<VideoPlatform> {
   return {
     type: platform,
     thumbnail,
+    duration,
     videoId,
   };
 }
