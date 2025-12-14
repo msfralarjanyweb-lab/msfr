@@ -19,6 +19,11 @@ interface AdminNotification {
   type: NotificationType;
 }
 
+// دالة مساعدة للحصول على تاريخ اليوم بصيغة عربية
+const getTodayDate = (): string => {
+  return new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+};
+
 const Admin: React.FC = () => {
   const { data, updateSection, toggleSectionVisibility, articles, addArticle, updateArticle, deleteArticle, testimonials, addTestimonial, updateTestimonial, deleteTestimonial, clients, addClient, updateClient, deleteClient, videos, addVideo, updateVideo, deleteVideo } = useData();
   const { logout, changePassword } = useAuth();
@@ -36,11 +41,12 @@ const Admin: React.FC = () => {
   const [editingArticle, setEditingArticle] = useState<number | null>(null);
   const [editingTestimonial, setEditingTestimonial] = useState<number | null>(null);
   const [editingClient, setEditingClient] = useState<number | null>(null);
+  const [isAddingClient, setIsAddingClient] = useState(false);
   const [newArticle, setNewArticle] = useState<Partial<Article>>({
     title: '',
     excerpt: '',
     content: '',
-    date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+    date: getTodayDate(),
     category: 'أخبار',
     image: '',
   });
@@ -49,13 +55,14 @@ const Admin: React.FC = () => {
     role: '',
     content: '',
     image: '',
-    date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+    date: getTodayDate(),
   });
   const [newClient, setNewClient] = useState<Partial<Client>>({
     name: '',
     logo: '',
   });
   const [editingVideo, setEditingVideo] = useState<number | null>(null);
+  const [isAddingVideo, setIsAddingVideo] = useState(false);
   const [newVideo, setNewVideo] = useState<Partial<VideoItem>>({
     title: '',
     thumbnail: '',
@@ -205,7 +212,7 @@ const Admin: React.FC = () => {
         title: '',
         excerpt: '',
         content: '',
-        date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+        date: getTodayDate(),
         category: 'أخبار',
         image: '',
       });
@@ -237,7 +244,7 @@ const Admin: React.FC = () => {
         role: '',
         content: '',
         image: '',
-        date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+        date: getTodayDate(),
       });
       setEditingTestimonial(null);
       showNotification(isEditing ? 'تم تحديث رأي العميل بنجاح' : 'تم إضافة رأي عميل جديد بنجاح');
@@ -267,6 +274,7 @@ const Admin: React.FC = () => {
         logo: '',
       });
       setEditingClient(null);
+      setIsAddingClient(false);
       showNotification(isEditing ? 'تم تحديث العميل بنجاح' : 'تم إضافة عميل جديد بنجاح');
     } catch (error) {
       console.error('Error saving client:', error);
@@ -303,6 +311,7 @@ const Admin: React.FC = () => {
         url: '',
       });
       setEditingVideo(null);
+      setIsAddingVideo(false);
       showNotification(isEditing ? 'تم تحديث الفيديو بنجاح' : 'تم إضافة فيديو جديد بنجاح');
     } catch (error) {
       console.error('Error saving video:', error);
@@ -509,7 +518,7 @@ const Admin: React.FC = () => {
                   setNewArticle({
                     title: '',
                     excerpt: '',
-                    date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+                    date: getTodayDate(),
                     category: 'أخبار',
                     image: '',
                   });
@@ -538,7 +547,7 @@ const Admin: React.FC = () => {
                     setNewArticle({
                       title: '',
                       excerpt: '',
-                      date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+                      date: getTodayDate(),
                       category: 'أخبار',
                       image: '',
                     });
@@ -621,6 +630,7 @@ const Admin: React.FC = () => {
               <button
                 onClick={() => {
                   setEditingVideo(null);
+                  setIsAddingVideo(true);
                   setNewVideo({
                     title: '',
                     thumbnail: '',
@@ -636,7 +646,7 @@ const Admin: React.FC = () => {
             </div>
 
             {/* Video Form */}
-            {(editingVideo !== null || Object.values(newVideo).some(v => v !== '')) && (
+            {(isAddingVideo || editingVideo !== null || Object.values(newVideo).some(v => v !== '')) && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-secondary mb-6">
                   {editingVideo !== null ? 'تعديل الفيديو' : 'فيديو جديد'}
@@ -649,6 +659,7 @@ const Admin: React.FC = () => {
                   onSave={handleSaveVideo}
                   onCancel={() => {
                     setEditingVideo(null);
+                    setIsAddingVideo(false);
                     setNewVideo({
                       title: '',
                       thumbnail: '',
@@ -694,6 +705,7 @@ const Admin: React.FC = () => {
                           <button
                             onClick={() => {
                               setEditingVideo(index);
+                              setIsAddingVideo(false);
                               setNewVideo({ ...videos[index] });
                             }}
                             className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
@@ -736,6 +748,7 @@ const Admin: React.FC = () => {
               <button
                 onClick={() => {
                   setEditingClient(null);
+                  setIsAddingClient(true);
                   setNewClient({
                     name: '',
                     logo: '',
@@ -749,7 +762,7 @@ const Admin: React.FC = () => {
             </div>
 
             {/* Client Form */}
-            {(editingClient !== null || Object.values(newClient).some(v => v !== '')) && (
+            {(isAddingClient || editingClient !== null || Object.values(newClient).some(v => v !== '')) && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-secondary mb-6">
                   {editingClient !== null ? 'تعديل العميل' : 'عميل جديد'}
@@ -762,6 +775,7 @@ const Admin: React.FC = () => {
                   onSave={handleSaveClient}
                   onCancel={() => {
                     setEditingClient(null);
+                    setIsAddingClient(false);
                     setNewClient({
                       name: '',
                       logo: '',
@@ -796,6 +810,7 @@ const Admin: React.FC = () => {
                           <button
                             onClick={() => {
                               setEditingClient(index);
+                              setIsAddingClient(false);
                               setNewClient({ ...clients[index] });
                             }}
                             className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
@@ -843,7 +858,7 @@ const Admin: React.FC = () => {
                     role: '',
                     content: '',
                     image: '',
-                    date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+                    date: getTodayDate(),
                   });
                 }}
                 className="w-full px-6 py-4 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
@@ -872,7 +887,7 @@ const Admin: React.FC = () => {
                       role: '',
                       content: '',
                       image: '',
-                      date: new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+                      date: getTodayDate(),
                     });
                   }}
                   notify={showNotification}

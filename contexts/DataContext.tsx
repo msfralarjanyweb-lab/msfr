@@ -263,6 +263,87 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loadDataFromSupabase();
   }, []);
 
+  // دالة مساعدة لإعادة تحميل المقالات
+  const reloadArticles = async () => {
+    const { data: articlesData, error: articlesError } = await supabase
+      .from('articles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!articlesError && articlesData && articlesData.length > 0) {
+      const formattedArticles: Article[] = articlesData.map((item: any) => ({
+        title: item.title,
+        excerpt: item.excerpt,
+        content: item.content || '',
+        date: item.date,
+        category: item.category,
+        image: item.image,
+      }));
+      setArticles(formattedArticles);
+      
+      setData(prev => ({
+        ...prev,
+        news: {
+          ...prev.news,
+          items: formattedArticles,
+        },
+      }));
+    }
+  };
+
+  // دالة مساعدة لإعادة تحميل آراء العملاء
+  const reloadTestimonials = async () => {
+    const { data: testimonialsData, error: testimonialsError } = await supabase
+      .from('testimonials')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!testimonialsError && testimonialsData && testimonialsData.length > 0) {
+      const formattedTestimonials: Testimonial[] = testimonialsData.map((item: any) => ({
+        name: item.name,
+        role: item.role,
+        content: item.content,
+        image: item.image,
+        date: item.date,
+      }));
+      setTestimonials(formattedTestimonials);
+      
+      setData(prev => ({
+        ...prev,
+        testimonials: {
+          ...prev.testimonials,
+          items: formattedTestimonials,
+        },
+      }));
+    }
+  };
+
+  // دالة مساعدة لإعادة تحميل الفيديوهات
+  const reloadVideos = async () => {
+    const { data: videosData, error: videosError } = await supabase
+      .from('videos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (!videosError && videosData && videosData.length > 0) {
+      const formattedVideos: VideoItem[] = videosData.map((item: any) => ({
+        title: item.title,
+        thumbnail: item.thumbnail,
+        duration: item.duration,
+        url: item.url,
+      }));
+      setVideos(formattedVideos);
+      
+      setData(prev => ({
+        ...prev,
+        videos: {
+          ...prev.videos,
+          items: formattedVideos,
+        },
+      }));
+    }
+  };
+
   const loadDataFromSupabase = async () => {
     try {
       setIsLoading(true);
@@ -294,58 +375,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
       }
 
-      // تحميل المقالات
-      const { data: articlesData, error: articlesError } = await supabase
-        .from('articles')
-        .select('*')
-        .order('display_order', { ascending: true });
+      // تحميل المقالات - الأحدث أولاً
+      await reloadArticles();
 
-      if (!articlesError && articlesData && articlesData.length > 0) {
-        const formattedArticles: Article[] = articlesData.map((item: any) => ({
-          title: item.title,
-          excerpt: item.excerpt,
-          content: item.content || '',
-          date: item.date,
-          category: item.category,
-          image: item.image,
-        }));
-        setArticles(formattedArticles);
-        
-        // تحديث قسم الأخبار
-        setData(prev => ({
-          ...prev,
-          news: {
-            ...prev.news,
-            items: formattedArticles,
-          },
-        }));
-      }
-
-      // تحميل آراء العملاء
-      const { data: testimonialsData, error: testimonialsError } = await supabase
-        .from('testimonials')
-        .select('*')
-        .order('display_order', { ascending: true });
-
-      if (!testimonialsError && testimonialsData && testimonialsData.length > 0) {
-        const formattedTestimonials: Testimonial[] = testimonialsData.map((item: any) => ({
-          name: item.name,
-          role: item.role,
-          content: item.content,
-          image: item.image,
-          date: item.date,
-        }));
-        setTestimonials(formattedTestimonials);
-        
-        // تحديث قسم آراء العملاء
-        setData(prev => ({
-          ...prev,
-          testimonials: {
-            ...prev.testimonials,
-            items: formattedTestimonials,
-          },
-        }));
-      }
+      // تحميل آراء العملاء - الأحدث أولاً
+      await reloadTestimonials();
 
       // تحميل العملاء
       const { data: clientsData, error: clientsError } = await supabase
@@ -370,30 +404,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }));
       }
 
-      // تحميل الفيديوهات
-      const { data: videosData, error: videosError } = await supabase
-        .from('videos')
-        .select('*')
-        .order('display_order', { ascending: true });
-
-      if (!videosError && videosData && videosData.length > 0) {
-        const formattedVideos: VideoItem[] = videosData.map((item: any) => ({
-          title: item.title,
-          thumbnail: item.thumbnail,
-          duration: item.duration,
-          url: item.url,
-        }));
-        setVideos(formattedVideos);
-        
-        // تحديث قسم الفيديوهات
-        setData(prev => ({
-          ...prev,
-          videos: {
-            ...prev.videos,
-            items: formattedVideos,
-          },
-        }));
-      }
+      // تحميل الفيديوهات - الأحدث أولاً
+      await reloadVideos();
     } catch (error) {
       console.error('Error loading data from Supabase:', error);
     } finally {
@@ -461,7 +473,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addArticle = async (article: Article) => {
     try {
-      const { data: newArticle, error } = await supabase
+      const { error } = await supabase
         .from('articles')
         .insert({
           title: article.title,
@@ -470,23 +482,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           date: article.date,
           category: article.category,
           image: article.image,
-          display_order: articles.length,
-        })
-        .select()
-        .single();
+        });
 
       if (error) throw error;
 
-      const updatedArticles = [...articles, article];
-      setArticles(updatedArticles);
-      
-      setData(prev => ({
-        ...prev,
-        news: {
-          ...prev.news,
-          items: updatedArticles,
-        },
-      }));
+      // إعادة تحميل المقالات لضمان الترتيب الصحيح
+      await reloadArticles();
     } catch (error) {
       console.error('Error adding article:', error);
       throw error;
@@ -499,7 +500,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: articlesData } = await supabase
         .from('articles')
         .select('id')
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (!articlesData || !articlesData[index]) {
         throw new Error('Article not found');
@@ -521,17 +522,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) throw error;
 
-      const updated = [...articles];
-      updated[index] = article;
-      setArticles(updated);
-      
-      setData(prev => ({
-        ...prev,
-        news: {
-          ...prev.news,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل المقالات لضمان الترتيب الصحيح
+      await reloadArticles();
     } catch (error) {
       console.error('Error updating article:', error);
       throw error;
@@ -544,7 +536,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: articlesData } = await supabase
         .from('articles')
         .select('id')
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (!articlesData || !articlesData[index]) {
         throw new Error('Article not found');
@@ -559,16 +551,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) throw error;
 
-      const updated = articles.filter((_, i) => i !== index);
-      setArticles(updated);
-      
-      setData(prev => ({
-        ...prev,
-        news: {
-          ...prev.news,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل المقالات لضمان الترتيب الصحيح
+      await reloadArticles();
     } catch (error) {
       console.error('Error deleting article:', error);
       throw error;
@@ -585,21 +569,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           content: testimonial.content,
           image: testimonial.image,
           date: testimonial.date,
-          display_order: testimonials.length,
         });
 
       if (error) throw error;
 
-      const updated = [...testimonials, testimonial];
-      setTestimonials(updated);
-      
-      setData(prev => ({
-        ...prev,
-        testimonials: {
-          ...prev.testimonials,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل آراء العملاء لضمان الترتيب الصحيح
+      await reloadTestimonials();
     } catch (error) {
       console.error('Error adding testimonial:', error);
       throw error;
@@ -612,7 +587,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: testimonialsData } = await supabase
         .from('testimonials')
         .select('id')
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (!testimonialsData || !testimonialsData[index]) {
         throw new Error('Testimonial not found');
@@ -633,17 +608,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) throw error;
 
-      const updated = [...testimonials];
-      updated[index] = testimonial;
-      setTestimonials(updated);
-      
-      setData(prev => ({
-        ...prev,
-        testimonials: {
-          ...prev.testimonials,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل آراء العملاء لضمان الترتيب الصحيح
+      await reloadTestimonials();
     } catch (error) {
       console.error('Error updating testimonial:', error);
       throw error;
@@ -656,7 +622,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: testimonialsData } = await supabase
         .from('testimonials')
         .select('id')
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (!testimonialsData || !testimonialsData[index]) {
         throw new Error('Testimonial not found');
@@ -671,16 +637,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) throw error;
 
-      const updated = testimonials.filter((_, i) => i !== index);
-      setTestimonials(updated);
-      
-      setData(prev => ({
-        ...prev,
-        testimonials: {
-          ...prev.testimonials,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل آراء العملاء لضمان الترتيب الصحيح
+      await reloadTestimonials();
     } catch (error) {
       console.error('Error deleting testimonial:', error);
       throw error;
@@ -802,21 +760,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           thumbnail: video.thumbnail,
           duration: video.duration,
           url: video.url,
-          display_order: videos.length,
         });
 
       if (error) throw error;
 
-      const updated = [...videos, video];
-      setVideos(updated);
-      
-      setData(prev => ({
-        ...prev,
-        videos: {
-          ...prev.videos,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل الفيديوهات لضمان الترتيب الصحيح
+      await reloadVideos();
     } catch (error) {
       console.error('Error adding video:', error);
       throw error;
@@ -829,7 +778,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: videosData } = await supabase
         .from('videos')
         .select('id')
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (!videosData || !videosData[index]) {
         throw new Error('Video not found');
@@ -849,17 +798,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) throw error;
 
-      const updated = [...videos];
-      updated[index] = video;
-      setVideos(updated);
-      
-      setData(prev => ({
-        ...prev,
-        videos: {
-          ...prev.videos,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل الفيديوهات لضمان الترتيب الصحيح
+      await reloadVideos();
     } catch (error) {
       console.error('Error updating video:', error);
       throw error;
@@ -872,7 +812,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const { data: videosData } = await supabase
         .from('videos')
         .select('id')
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (!videosData || !videosData[index]) {
         throw new Error('Video not found');
@@ -887,16 +827,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) throw error;
 
-      const updated = videos.filter((_, i) => i !== index);
-      setVideos(updated);
-      
-      setData(prev => ({
-        ...prev,
-        videos: {
-          ...prev.videos,
-          items: updated,
-        },
-      }));
+      // إعادة تحميل الفيديوهات لضمان الترتيب الصحيح
+      await reloadVideos();
     } catch (error) {
       console.error('Error deleting video:', error);
       throw error;
