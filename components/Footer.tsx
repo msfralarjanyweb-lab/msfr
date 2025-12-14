@@ -49,10 +49,20 @@ const Footer: React.FC = () => {
             <p className="text-gray-300 text-base leading-relaxed mb-8">
               توفر شركتنا مجموعة كاملة من الخدمات القانونية للأفراد والشركات في المملكة العربية السعودية، مع الالتزام بأعلى معايير المهنية.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 flex-wrap">
                <a href="#" className="w-10 h-10 bg-secondary-light flex items-center justify-center rounded hover:bg-primary transition-colors"><Facebook size={20} /></a>
                <a href="https://x.com/msfr_82" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-secondary-light flex items-center justify-center rounded hover:bg-primary transition-colors"><Twitter size={20} /></a>
                <a href="https://www.youtube.com/@mesfer0000" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-secondary-light flex items-center justify-center rounded hover:bg-primary transition-colors"><Youtube size={20} /></a>
+               <a href="https://www.tiktok.com/@msfr_82" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-secondary-light flex items-center justify-center rounded hover:bg-primary transition-colors">
+                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                   <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                 </svg>
+               </a>
+               <a href="https://www.snapchat.com/add/mesferr25" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-secondary-light flex items-center justify-center rounded hover:bg-primary transition-colors">
+                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                   <path d="M12.166 1c-5.94 0-10.75 4.81-10.75 10.75 0 4.56 2.87 8.45 6.9 10.01-.09-.81-.17-2.07.04-2.96.21-.81 1.29-5.15 1.29-5.15s-.33-.62-.33-1.54c0-1.44.89-2.52 2-2.52.95 0 1.4.67 1.4 1.46 0 .89-.6 2.22-.92 3.46-.26 1.03.55 1.87 1.64 1.87 1.97 0 3.48-1.94 3.48-4.75 0-2.48-1.91-4.22-4.63-4.22-3.15 0-5 2.22-5 4.5 0 .89.36 1.85.82 2.37.09.1.1.2.08.3-.09.32-.27 1.04-.31 1.18-.05.19-.16.23-.37.14-1.38-.6-2.25-2.49-2.25-4.02 0-3.27 2.54-6.27 7.33-6.27 3.85 0 6.84 2.57 6.84 5.99 0 3.58-2.41 6.46-5.77 6.46-1.12 0-2.18-.54-2.54-1.19l-.69 2.47c-.25.96-.93 2.03-1.38 2.91.95.28 1.93.43 2.93.43 5.94 0 10.75-4.81 10.75-10.75C22.916 5.81 18.106 1 12.166 1z"/>
+                 </svg>
+               </a>
             </div>
           </div>
 
