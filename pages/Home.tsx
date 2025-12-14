@@ -612,9 +612,6 @@ const Home: React.FC = () => {
                         <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                           <PlayCircle className="w-16 h-16 text-white opacity-90 group-hover:scale-110 transition-transform drop-shadow-lg" />
                         </div>
-                        <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                          {video.duration}
-                        </div>
                       </div>
                       <div className="p-6">
                         <h3 className="text-xl font-bold text-secondary mb-3 leading-snug group-hover:text-primary transition-colors">

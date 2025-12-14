@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Settings, FileText, Eye, EyeOff, Home, Layout, 
   Users, MessageSquare, Video, Newspaper, HelpCircle, 
-  Mail, Save, Plus, Edit, Trash2, X, Image as ImageIcon, LogOut, Star, Upload, Lock, CheckCircle2, AlertTriangle
+  Mail, Save, Plus, Edit, Trash2, X, Image as ImageIcon, LogOut, Star, Upload, Lock, CheckCircle2, AlertTriangle, ArrowRight
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
 import { getVideoThumbnail, getVideoInfo, detectVideoPlatform } from '../utils/videoThumbnail';
+import { extractReviewFromGoogleMaps, isGoogleMapsReviewUrl } from '../utils/googleMapsReview';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -67,7 +68,6 @@ const Admin: React.FC = () => {
   const [newVideo, setNewVideo] = useState<Partial<VideoItem>>({
     title: '',
     thumbnail: '',
-    duration: '',
     url: '',
   });
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -288,7 +288,7 @@ const Admin: React.FC = () => {
       const videoToSave = {
         ...newVideo,
         thumbnail: newVideo.thumbnail?.trim() || '/images/service.png',
-        duration: newVideo.duration?.trim() || '00:00',
+        duration: '', // إزالة المدة من الواجهة
         url: newVideo.url?.trim() || '',
       } as VideoItem;
       
@@ -315,7 +315,6 @@ const Admin: React.FC = () => {
       setNewVideo({
         title: '',
         thumbnail: '',
-        duration: '',
         url: '',
       });
       setEditingVideo(null);
@@ -641,7 +640,6 @@ const Admin: React.FC = () => {
                   setNewVideo({
                     title: '',
                     thumbnail: '',
-                    duration: '',
                     url: '',
                   });
                 }}
@@ -670,7 +668,6 @@ const Admin: React.FC = () => {
                     setNewVideo({
                       title: '',
                       thumbnail: '',
-                      duration: '',
                       url: '',
                     });
                   }}
@@ -697,7 +694,6 @@ const Admin: React.FC = () => {
                         <div className="flex items-start justify-between mb-2">
                           <div>
                             <h3 className="text-xl font-bold text-secondary mb-2">{video.title}</h3>
-                            <p className="text-gray-600 text-sm mb-2">{video.duration}</p>
                             <a 
                               href={video.url} 
                               target="_blank" 
@@ -1610,8 +1606,110 @@ const TestimonialForm: React.FC<{
   onCancel: () => void;
   notify?: (message: string, type?: NotificationType) => void;
 }> = ({ testimonial, onChange, onSave, onCancel, notify }) => {
+  const [googleMapsUrl, setGoogleMapsUrl] = React.useState('');
+  const [isLoadingReview, setIsLoadingReview] = React.useState(false);
+
+  const handleFetchReviewData = async () => {
+    if (!googleMapsUrl || googleMapsUrl.trim() === '') {
+      notify?.('يرجى إدخال رابط التقييم أولاً', 'error');
+      return;
+    }
+
+    // التحقق من أن الرابط صحيح
+    if (!isGoogleMapsReviewUrl(googleMapsUrl)) {
+      notify?.('الرابط المدخل ليس رابط Google Maps صحيح', 'error');
+      return;
+    }
+
+    setIsLoadingReview(true);
+    try {
+      // محاولة استخراج البيانات من الرابط
+      const reviewData = await extractReviewFromGoogleMaps(googleMapsUrl);
+      
+      // تحديث الحقول بالبيانات المستخرجة
+      onChange({
+        ...testimonial,
+        name: reviewData.name || testimonial.name || '',
+        content: reviewData.content || testimonial.content || '',
+        date: reviewData.date || testimonial.date || new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }),
+        image: reviewData.image || testimonial.image || '',
+      });
+      
+      if (reviewData.name || reviewData.content) {
+        notify?.('تم جلب البيانات من رابط Google Maps. يرجى مراجعة البيانات وتعديلها إذا لزم الأمر.', 'success');
+      } else {
+        notify?.('لم يتم العثور على بيانات في الرابط. يرجى فتح الرابط ونسخ البيانات يدوياً.', 'error');
+      }
+    } catch (error) {
+      console.error('Error extracting review data:', error);
+      notify?.('فشل استخراج البيانات من الرابط. يرجى فتح الرابط ونسخ البيانات يدوياً.', 'error');
+    } finally {
+      setIsLoadingReview(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
+      {/* حقل رابط Google Maps */}
+      <div className="bg-blue-50 border-r-4 border-blue-500 p-4 rounded-lg">
+        <label className="block text-sm font-bold text-secondary mb-2">
+          رابط التقييم من Google Maps (اختياري)
+        </label>
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={googleMapsUrl}
+              onChange={(e) => setGoogleMapsUrl(e.target.value)}
+              placeholder="https://www.google.com/maps/place/..."
+              className="w-full bg-white border border-gray-200 p-3 text-base text-secondary focus:outline-none focus:border-primary transition-colors rounded"
+              disabled={isLoadingReview}
+            />
+            {isLoadingReview && (
+              <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleFetchReviewData}
+            disabled={isLoadingReview || !googleMapsUrl.trim()}
+            className="px-4 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            {isLoadingReview ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>جاري الجلب...</span>
+              </>
+            ) : (
+              <>
+                <Upload size={18} />
+                <span>جلب البيانات</span>
+              </>
+            )}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          الصق رابط التقييم من Google Maps واضغط على "جلب البيانات" لمحاولة تعبئة البيانات تلقائياً
+        </p>
+        {googleMapsUrl && isGoogleMapsReviewUrl(googleMapsUrl) && (
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary text-sm hover:underline mt-2 inline-block flex items-center gap-1"
+          >
+            <span>فتح الرابط في نافذة جديدة</span>
+            <ArrowRight size={14} />
+          </a>
+        )}
+      </div>
+
+      <div className="border-t border-gray-200 pt-4">
+        <h4 className="text-sm font-bold text-secondary mb-4">بيانات رأي العميل</h4>
+      </div>
+
       <InputField
         label="اسم العميل"
         value={testimonial.name || ''}
@@ -1733,15 +1831,9 @@ const VideoForm: React.FC<{
       const info = await getVideoInfo(url);
       const updatedVideo = { ...video, url, thumbnail: info.thumbnail };
       
-      // إذا تم جلب المدة، نضيفها
-      if (info.duration) {
-        updatedVideo.duration = info.duration;
-        onChange(updatedVideo);
-        notify?.('تم جلب الصورة المصغرة والمدة تلقائياً', 'success');
-      } else {
-        onChange(updatedVideo);
-        notify?.('تم جلب الصورة المصغرة تلقائياً. يمكنك إدخال المدة يدوياً.', 'success');
-      }
+      // إزالة المدة من الواجهة
+      onChange(updatedVideo);
+      notify?.('تم جلب الصورة المصغرة تلقائياً', 'success');
     } catch (error) {
       console.error('Error fetching video info:', error);
       notify?.('فشل جلب معلومات الفيديو تلقائياً. يمكنك إضافة المعلومات يدوياً.', 'error');
@@ -1794,12 +1886,6 @@ const VideoForm: React.FC<{
           المدعوم: يوتيوب، تيك توك، سناب شات - سيتم جلب الصورة المصغرة تلقائياً
         </p>
       </div>
-      <InputField
-        label="مدة الفيديو (مثال: 05:30)"
-        value={video.duration || ''}
-        onChange={(v) => onChange({ ...video, duration: v })}
-        placeholder="05:30"
-      />
       <ImageUploadField
         label="صورة مصغرة للفيديو"
         value={video.thumbnail || ''}
