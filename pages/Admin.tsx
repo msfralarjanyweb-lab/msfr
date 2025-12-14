@@ -1018,9 +1018,11 @@ const Admin: React.FC = () => {
                         newPassword: '',
                         confirmPassword: '',
                       });
+                      // تسجيل الخروج التلقائي بعد تغيير كلمة المرور
                       setTimeout(() => {
-                        setPasswordSuccess(false);
-                      }, 5000);
+                        logout();
+                        navigate('/login');
+                      }, 2000); // انتظار 2 ثانية لإظهار رسالة النجاح
                     } else {
                       setPasswordError(result.error || 'فشل تغيير كلمة المرور');
                     }

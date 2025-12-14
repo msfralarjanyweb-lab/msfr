@@ -11,10 +11,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Default credentials - يمكن تغييرها لاحقاً
-const DEFAULT_USERNAME = 'admin';
-const DEFAULT_PASSWORD = 'admin123';
-
 // دالة بسيطة لمقارنة كلمات المرور (للاستخدام المؤقت)
 // في الإنتاج، يجب استخدام bcrypt أو Supabase Auth
 function simplePasswordCompare(inputPassword: string, storedPassword: string): boolean {
@@ -73,18 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .single();
 
       if (error || !user) {
-        // إذا لم يوجد المستخدم، نستخدم البيانات الافتراضية كـ fallback
-        if (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
-          // إنشاء session مؤقت
-          const sessionToken = generateSessionToken();
-          const expiresAt = new Date();
-          expiresAt.setHours(expiresAt.getHours() + 24); // 24 ساعة
-
-          localStorage.setItem('sessionToken', sessionToken);
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return true;
-        }
+        // المستخدم غير موجود في قاعدة البيانات
         setIsLoading(false);
         return false;
       }
@@ -92,8 +77,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // مقارنة كلمة المرور
       // ملاحظة: في الإنتاج، يجب استخدام bcrypt.compare()
       // للتبسيط، نستخدم مقارنة مباشرة (يجب تحديثها لاستخدام bcrypt)
-      const passwordMatch = simplePasswordCompare(password, user.password_hash) || 
-                           (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD);
+      const passwordMatch = simplePasswordCompare(password, user.password_hash);
 
       if (passwordMatch) {
         // إنشاء session جديد
@@ -187,60 +171,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         userError = result.error;
       }
 
-      // إذا لم يوجد المستخدم في قاعدة البيانات، نبحث عن المستخدم الافتراضي
-      if ((userError || !user) && !sessionData) {
-        // البحث عن المستخدم الافتراضي
-        const { data: defaultUser, error: defaultUserError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('username', DEFAULT_USERNAME)
-          .single();
-        
-        if (defaultUser && !defaultUserError) {
-          user = defaultUser;
-        }
+      // التحقق من وجود المستخدم
+      if (userError || !user) {
+        return { success: false, error: 'المستخدم غير موجود في قاعدة البيانات' };
       }
 
       // التحقق من كلمة المرور الحالية
-      let passwordMatch = false;
-      
-      if (user) {
-        passwordMatch = simplePasswordCompare(currentPassword, user.password_hash) || 
-                       (user.username === DEFAULT_USERNAME && currentPassword === DEFAULT_PASSWORD);
-      } else {
-        // إذا لم يوجد المستخدم، نتحقق من البيانات الافتراضية
-        passwordMatch = currentPassword === DEFAULT_PASSWORD;
-      }
+      const passwordMatch = simplePasswordCompare(currentPassword, user.password_hash);
 
       if (!passwordMatch) {
         return { success: false, error: 'كلمة المرور الحالية غير صحيحة' };
       }
 
-      // تحديث أو إنشاء المستخدم
-      if (user) {
-        // تحديث كلمة المرور للمستخدم الموجود
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ password_hash: newPassword })
-          .eq('id', user.id);
+      // تحديث كلمة المرور للمستخدم الموجود
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ password_hash: newPassword })
+        .eq('id', user.id);
 
-        if (updateError) {
-          return { success: false, error: 'فشل تحديث كلمة المرور' };
-        }
-      } else {
-        // إنشاء المستخدم في قاعدة البيانات إذا لم يكن موجوداً
-        const { error: createError } = await supabase
-          .from('users')
-          .upsert({
-            username: DEFAULT_USERNAME,
-            password_hash: newPassword,
-          }, {
-            onConflict: 'username'
-          });
-
-        if (createError) {
-          return { success: false, error: 'فشل تحديث كلمة المرور' };
-        }
+      if (updateError) {
+        return { success: false, error: 'فشل تحديث كلمة المرور' };
       }
 
       return { success: true };
