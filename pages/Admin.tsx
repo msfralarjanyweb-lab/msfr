@@ -291,17 +291,24 @@ const Admin: React.FC = () => {
         duration: newVideo.duration?.trim() || '00:00',
         url: newVideo.url?.trim() || '',
       } as VideoItem;
-      const isEditing = editingVideo !== null;
       
+      // التحقق من أن الحقول المطلوبة موجودة
       if (!videoToSave.title || !videoToSave.url) {
         showNotification('يرجى إدخال عنوان الفيديو ورابط الفيديو', 'error');
         return;
       }
       
+      // التحقق من أننا في وضع التعديل
+      // نستخدم isAddingVideo للتأكد من أننا لسنا في وضع الإضافة
+      // ونتحقق من أن editingVideo صحيح وأنه ضمن نطاق الفيديوهات الموجودة
+      const isEditing = !isAddingVideo && editingVideo !== null && editingVideo >= 0 && editingVideo < videos.length;
+      
       if (isEditing) {
         await updateVideo(editingVideo, videoToSave);
+        showNotification('تم تحديث الفيديو بنجاح');
       } else {
         await addVideo(videoToSave);
+        showNotification('تم إضافة فيديو جديد بنجاح');
       }
       
       // إعادة تعيين الحقول بعد الحفظ
@@ -313,7 +320,6 @@ const Admin: React.FC = () => {
       });
       setEditingVideo(null);
       setIsAddingVideo(false);
-      showNotification(isEditing ? 'تم تحديث الفيديو بنجاح' : 'تم إضافة فيديو جديد بنجاح');
     } catch (error) {
       console.error('Error saving video:', error);
       showNotification('حدث خطأ أثناء حفظ الفيديو. يرجى المحاولة مرة أخرى.', 'error');
