@@ -8,6 +8,7 @@ import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
+import { getVideoThumbnail, detectVideoPlatform } from '../utils/videoThumbnail';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -1701,6 +1702,54 @@ const VideoForm: React.FC<{
   onCancel: () => void;
   notify?: (message: string, type?: NotificationType) => void;
 }> = ({ video, onChange, onSave, onCancel, notify }) => {
+  const [isLoadingThumbnail, setIsLoadingThumbnail] = React.useState(false);
+
+  // جلب الصورة المصغرة تلقائياً عند تغيير رابط الفيديو
+  const handleUrlChange = async (url: string) => {
+    onChange({ ...video, url });
+    
+    // إذا كان الرابط فارغاً، لا نفعل شيء
+    if (!url || url.trim() === '') {
+      return;
+    }
+
+    // التحقق من نوع المنصة
+    const platform = detectVideoPlatform(url);
+    
+    // إذا لم يتم التعرف على المنصة، لا نحاول جلب الصورة
+    if (platform === 'unknown') {
+      return;
+    }
+
+    // جلب الصورة المصغرة
+    setIsLoadingThumbnail(true);
+    try {
+      const thumbnail = await getVideoThumbnail(url);
+      onChange({ ...video, url, thumbnail });
+      notify?.('تم جلب الصورة المصغرة تلقائياً', 'success');
+    } catch (error) {
+      console.error('Error fetching thumbnail:', error);
+      notify?.('فشل جلب الصورة المصغرة تلقائياً. يمكنك إضافة الصورة يدوياً.', 'error');
+    } finally {
+      setIsLoadingThumbnail(false);
+    }
+  };
+
+  // تحديد placeholder حسب نوع المنصة المدعومة
+  const getPlaceholder = () => {
+    const platform = detectVideoPlatform(video.url || '');
+    switch (platform) {
+      case 'youtube':
+        return 'https://www.youtube.com/watch?v=... أو https://youtu.be/...';
+      case 'tiktok':
+        return 'https://www.tiktok.com/@username/video/...';
+      case 'snapchat':
+        return 'https://www.snapchat.com/add/username';
+      default:
+        return 'https://www.youtube.com/watch?v=... أو https://www.tiktok.com/@username/video/... أو https://www.snapchat.com/add/username';
+    }
+  };
+
   return (
     <div className="space-y-4">
       <InputField
@@ -1708,12 +1757,28 @@ const VideoForm: React.FC<{
         value={video.title || ''}
         onChange={(v) => onChange({ ...video, title: v })}
       />
-      <InputField
-        label="رابط الفيديو (URL)"
-        value={video.url || ''}
-        onChange={(v) => onChange({ ...video, url: v })}
-        placeholder="https://www.youtube.com/watch?v=..."
-      />
+      <div>
+        <label className="block text-sm font-bold text-secondary mb-2">
+          رابط الفيديو (URL)
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={video.url || ''}
+            onChange={(e) => handleUrlChange(e.target.value)}
+            placeholder={getPlaceholder()}
+            className="w-full bg-white border border-gray-200 p-3 text-base text-secondary focus:outline-none focus:border-primary transition-colors rounded"
+          />
+          {isLoadingThumbnail && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2">
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          المدعوم: يوتيوب، تيك توك، سناب شات - سيتم جلب الصورة المصغرة تلقائياً
+        </p>
+      </div>
       <InputField
         label="مدة الفيديو (مثال: 05:30)"
         value={video.duration || ''}
@@ -1726,6 +1791,13 @@ const VideoForm: React.FC<{
         onChange={(v) => onChange({ ...video, thumbnail: v })}
         notify={notify}
       />
+      {video.thumbnail && video.thumbnail !== '/images/service.png' && (
+        <div className="bg-green-50 border-r-4 border-green-500 p-4 rounded-lg">
+          <p className="text-green-700 text-sm font-medium">
+            ✓ تم جلب الصورة المصغرة تلقائياً من رابط الفيديو
+          </p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
           onClick={onSave}
