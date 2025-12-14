@@ -20,9 +20,9 @@ interface AdminNotification {
   type: NotificationType;
 }
 
-// دالة مساعدة للحصول على تاريخ اليوم بصيغة عربية
+// دالة مساعدة للحصول على تاريخ اليوم بصيغة عربية (ميلادي)
 const getTodayDate = (): string => {
-  return new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+  return new Date().toLocaleDateString('ar', { year: 'numeric', month: 'long', day: 'numeric', calendar: 'gregory' });
 };
 
 const Admin: React.FC = () => {
