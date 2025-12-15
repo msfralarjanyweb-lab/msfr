@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
 import { getVideoThumbnail, getVideoInfo, detectVideoPlatform } from '../utils/videoThumbnail';
+import { FEATURES } from '../data/constants';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -1151,6 +1152,18 @@ const SectionEditor: React.FC<{
 }> = ({ sectionId, sectionData, onSave, onCancel }) => {
   const [formData, setFormData] = useState(sectionData);
 
+  // ضمان توفر عناصر قسم "المميزات" حتى يمكن تعديلها في لوحة التحكم
+  // (في Supabase يتم إسقاط icon لأنه غير قابل للتسلسل، وقد لا تُحفظ items أصلاً في بعض الحالات)
+  useEffect(() => {
+    if (sectionId !== 'features') return;
+
+    setFormData((prev: any) => {
+      const hasItems = Array.isArray(prev?.items) && prev.items.length > 0;
+      if (hasItems) return prev;
+      return { ...prev, items: FEATURES };
+    });
+  }, [sectionId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave(formData);
@@ -1256,6 +1269,25 @@ const SectionEditor: React.FC<{
             <InputField label="العنوان الفرعي" value={formData.subtitle} onChange={(v) => updateField('subtitle', v)} />
             <InputField label="العنوان الرئيسي" value={formData.title} onChange={(v) => updateField('title', v)} />
             <TextareaField label="الوصف" value={formData.description} onChange={(v) => updateField('description', v)} />
+            {Array.isArray(formData.items) && formData.items.length > 0 && (
+              <div className="space-y-4">
+                {formData.items.map((item: any, index: number) => (
+                  <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
+                    <h4 className="font-bold text-secondary mb-3">الميزة {index + 1}</h4>
+                    <InputField
+                      label="العنوان"
+                      value={item.title}
+                      onChange={(v) => updateArrayItem('items', index, 'title', v)}
+                    />
+                    <TextareaField
+                      label="الوصف"
+                      value={item.description}
+                      onChange={(v) => updateArrayItem('items', index, 'description', v)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
