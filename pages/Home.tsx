@@ -987,7 +987,7 @@ const Home: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold mb-1">تواصل معنا عبر واتساب</div>
-                    <div className="text-white/90 text-sm">احصل على استشارة مجانية الآن</div>
+                    <div className="text-white/90 text-sm">اطلب استشارة الآن</div>
                   </div>
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </a>

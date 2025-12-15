@@ -32,8 +32,8 @@ export const SERVICES: Service[] = [
 
 export const FEATURES: Feature[] = [
   {
-    title: 'استشارة مجانية',
-    description: 'نقدم استشارة أولية مجانية لتقييم حالتك وفهم احتياجاتك القانونية بدقة.',
+    title: 'استشارة قانونية',
+    description: 'نساعدك على فهم خياراتك القانونية وتحديد الخطوات المناسبة لقضيتك بوضوح واحترافية.',
     icon: Briefcase
   },
   {
