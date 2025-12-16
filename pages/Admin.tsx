@@ -103,17 +103,24 @@ const Admin: React.FC = () => {
     const loadVisitCounts = async () => {
       setIsVisitCountsLoading(true);
       try {
-        const [humanResult, botResult] = await Promise.all([
-          supabase.from('page_visits').select('*', { count: 'exact', head: true }).eq('is_bot', false),
-          supabase.from('page_visits').select('*', { count: 'exact', head: true }).eq('is_bot', true),
-        ]);
+        // IMPORTANT:
+        // - `page_visits` is protected by RLS (no direct SELECT for anon/authenticated).
+        // - The canonical way to fetch counts is via the SECURITY DEFINER RPC.
+        // See: `supabase-migration.sql` -> `public.get_page_visit_count(p_page text)`.
+        const { data, error } = await supabase.rpc('get_page_visit_count', { p_page: 'home' });
+        if (error) throw error;
 
-        if (humanResult.error) throw humanResult.error;
-        if (botResult.error) throw botResult.error;
+        const total = Number(data);
+        if (!Number.isFinite(total)) {
+          throw new Error('Invalid count returned from get_page_visit_count');
+        }
 
         if (!cancelled) {
-          setHumanVisitCount(typeof humanResult.count === 'number' ? humanResult.count : 0);
-          setBotVisitCount(typeof botResult.count === 'number' ? botResult.count : 0);
+          // Keep the existing UI slots:
+          // - We show TOTAL visits in "الحقيقيين" (human) card.
+          // - Bot breakdown is not supported by the current DB schema, so we render "--".
+          setHumanVisitCount(total);
+          setBotVisitCount(null);
         }
       } catch (error) {
         console.error('Error loading visit counts:', error);
@@ -452,10 +459,10 @@ const Admin: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="rounded-xl border border-green-100 bg-gradient-to-l from-green-50 via-white to-transparent p-4">
                 <div className="flex items-center justify-between gap-3 mb-2">
-                  <h3 className="text-base font-bold text-secondary">الحقيقيين</h3>
+                  <h3 className="text-base font-bold text-secondary">إجمالي الزيارات</h3>
                   <span className="inline-flex items-center gap-2 text-xs font-bold text-green-700">
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span>غير بوت</span>
+                    <span>Home</span>
                   </span>
                 </div>
                 <div className="text-3xl font-bold text-green-700 leading-none" dir="ltr">
@@ -472,7 +479,7 @@ const Admin: React.FC = () => {
                   <h3 className="text-base font-bold text-secondary">البوتات</h3>
                   <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-700">
                     <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span>Bot</span>
+                    <span>غير متاح</span>
                   </span>
                 </div>
                 <div className="text-3xl font-bold text-amber-700 leading-none" dir="ltr">
