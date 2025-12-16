@@ -1,54 +1,17 @@
-# Robots.txt - حماية من الروبوتات الضارة
 User-agent: *
 Allow: /
 
-# منع الروبوتات الضارة والمخادعة
-User-agent: AhrefsBot
-Disallow: /
+# Optional: reduce crawl rate for Bing only
+User-agent: Bingbot
+Crawl-delay: 10
+Allow: /
 
-User-agent: SemrushBot
-Disallow: /
-
-User-agent: DotBot
-Disallow: /
-
+# Block truly unwanted crawlers (optional)
 User-agent: MJ12bot
 Disallow: /
 
 User-agent: BLEXBot
 Disallow: /
 
-User-agent: MegaIndex
-Disallow: /
-
-User-agent: YandexBot
-Disallow: /
-
-User-agent: Baiduspider
-Disallow: /
-
-User-agent: Sogou
-Disallow: /
-
-User-agent: Exabot
-Disallow: /
-
-User-agent: facebot
-Disallow: /
-
-User-agent: ia_archiver
-Disallow: /
-
-# السماح لمحركات البحث المشهورة فقط
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-# Crawl-delay للحد من سرعة الزحف
-Crawl-delay: 10
-
-# Sitemap (يمكنك إضافة رابط sitemap هنا لاحقاً)
-# Sitemap: https://yourdomain.com/sitemap.xml
-
+# Sitemap
+Sitemap: https://msfralarjani.sa/sitemap.xml
