@@ -450,9 +450,9 @@ const Admin: React.FC = () => {
               </div>
               <span className="text-xs font-bold text-gray-400">إحصائيات</span>
             </div>
-            <div className="space-y-4">
-              <div className="flex items-end justify-between gap-4">
-                <div className="text-sm font-bold text-secondary">عدد الزيارات الحقيقية</div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <div className="text-sm font-bold text-secondary mb-2">عدد الزيارات الحقيقية</div>
                 <div className="text-3xl font-bold text-primary leading-none" dir="ltr">
                   {typeof humanVisitCount === 'number'
                     ? humanVisitCount.toLocaleString('ar')
@@ -461,9 +461,8 @@ const Admin: React.FC = () => {
                       : '--'}
                 </div>
               </div>
-              <div className="h-px bg-gray-100" />
-              <div className="flex items-end justify-between gap-4">
-                <div className="text-sm font-bold text-secondary">عدد البوتات</div>
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <div className="text-sm font-bold text-secondary mb-2">عدد البوتات</div>
                 <div className="text-3xl font-bold text-primary leading-none" dir="ltr">
                   {typeof botVisitCount === 'number'
                     ? botVisitCount.toLocaleString('ar')
