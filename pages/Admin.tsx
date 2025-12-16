@@ -385,16 +385,6 @@ const Admin: React.FC = () => {
               <div>
                 <h1 className="text-3xl font-bold text-secondary">لوحة التحكم</h1>
                 <p className="text-gray-600 mt-1">إدارة محتوى الموقع</p>
-                <div className="mt-2 text-sm text-gray-600">
-                  <span className="font-bold text-secondary">زيارات الصفحة الرئيسية: </span>
-                  <span className="font-bold text-primary">
-                    {typeof homeVisitCount === 'number'
-                      ? homeVisitCount.toLocaleString('ar')
-                      : isVisitCountLoading
-                        ? '...'
-                        : '--'}
-                  </span>
-                </div>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row w-full lg:w-auto items-stretch sm:items-center gap-3">
@@ -418,6 +408,26 @@ const Admin: React.FC = () => {
 
         {/* Quick Access Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Stats card (read-only): shows homepage visits without affecting counting */}
+          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                <Users size={24} />
+              </div>
+              <span className="text-xs font-bold text-gray-400">إحصائيات</span>
+            </div>
+            <h3 className="text-xl font-bold text-secondary mb-2">زيارات الصفحة الرئيسية</h3>
+            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
+              {typeof homeVisitCount === 'number'
+                ? homeVisitCount.toLocaleString('ar')
+                : isVisitCountLoading
+                  ? '...'
+                  : '--'}
+            </div>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              يتم تحديثه من قاعدة البيانات، ولوحة التحكم لا تزيد العداد.
+            </p>
+          </div>
           {dashboardCards.map((card) => {
             const CardIcon = card.icon;
             const isActive = activeTab === card.id;
