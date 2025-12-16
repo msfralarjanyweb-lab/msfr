@@ -441,36 +441,48 @@ const Admin: React.FC = () => {
 
         {/* Quick Access Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
+          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md md:col-span-2 lg:col-span-2">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 rounded-xl bg-primary/10 text-primary">
                 <Users size={24} />
               </div>
-              <span className="text-xs font-bold text-gray-400">إحصائيات</span>
+              <span className="text-xs font-bold text-gray-400">إحصائيات الزيارات</span>
             </div>
-            <h3 className="text-xl font-bold text-secondary mb-2">عدد الزيارات الحقيقية</h3>
-            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
-              {typeof humanVisitCount === 'number'
-                ? humanVisitCount.toLocaleString('ar')
-                : isVisitCountsLoading
-                  ? '...'
-                  : '--'}
-            </div>
-          </div>
-          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                <Users size={24} />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="rounded-xl border border-green-100 bg-gradient-to-l from-green-50 via-white to-transparent p-4">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h3 className="text-base font-bold text-secondary">الحقيقيين</h3>
+                  <span className="inline-flex items-center gap-2 text-xs font-bold text-green-700">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span>غير بوت</span>
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-green-700 leading-none" dir="ltr">
+                  {typeof humanVisitCount === 'number'
+                    ? humanVisitCount.toLocaleString('ar')
+                    : isVisitCountsLoading
+                      ? '...'
+                      : '--'}
+                </div>
               </div>
-              <span className="text-xs font-bold text-gray-400">إحصائيات</span>
-            </div>
-            <h3 className="text-xl font-bold text-secondary mb-2">عدد البوتات</h3>
-            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
-              {typeof botVisitCount === 'number'
-                ? botVisitCount.toLocaleString('ar')
-                : isVisitCountsLoading
-                  ? '...'
-                  : '--'}
+
+              <div className="rounded-xl border border-amber-100 bg-gradient-to-l from-amber-50 via-white to-transparent p-4">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <h3 className="text-base font-bold text-secondary">البوتات</h3>
+                  <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-700">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>Bot</span>
+                  </span>
+                </div>
+                <div className="text-3xl font-bold text-amber-700 leading-none" dir="ltr">
+                  {typeof botVisitCount === 'number'
+                    ? botVisitCount.toLocaleString('ar')
+                    : isVisitCountsLoading
+                      ? '...'
+                      : '--'}
+                </div>
+              </div>
             </div>
           </div>
           {dashboardCards.map((card) => {
