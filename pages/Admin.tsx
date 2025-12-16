@@ -103,19 +103,27 @@ const Admin: React.FC = () => {
     const loadVisitCounts = async () => {
       setIsVisitCountsLoading(true);
       try {
-        const [humanResult, botResult] = await Promise.all([
-          supabase.rpc('get_page_visit_count_by_is_bot', { p_is_bot: false }),
-          supabase.rpc('get_page_visit_count_by_is_bot', { p_is_bot: true }),
-        ]);
+        const fetchOne = async (isBot: boolean) => {
+          const rpcResult = await supabase.rpc('get_page_visit_count_by_is_bot', { p_is_bot: isBot });
+          if (!rpcResult.error) {
+            const n = Number(rpcResult.data);
+            if (Number.isFinite(n)) return n;
+          }
 
-        if (humanResult.error) throw humanResult.error;
-        if (botResult.error) throw botResult.error;
+          const countResult = await supabase
+            .from('page_visits')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_bot', isBot);
+
+          if (countResult.error) throw countResult.error;
+          return typeof countResult.count === 'number' ? countResult.count : 0;
+        };
+
+        const [human, bot] = await Promise.all([fetchOne(false), fetchOne(true)]);
 
         if (!cancelled) {
-          const nextHumanCount = Number(humanResult.data);
-          const nextBotCount = Number(botResult.data);
-          setHumanVisitCount(Number.isFinite(nextHumanCount) ? nextHumanCount : 0);
-          setBotVisitCount(Number.isFinite(nextBotCount) ? nextBotCount : 0);
+          setHumanVisitCount(human);
+          setBotVisitCount(bot);
         }
       } catch (error) {
         console.error('Error loading visit counts:', error);
