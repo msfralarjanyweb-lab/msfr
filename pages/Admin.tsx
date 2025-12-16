@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
 import { getVideoThumbnail, getVideoInfo, detectVideoPlatform } from '../utils/videoThumbnail';
 import { FEATURES } from '../data/constants';
+import { useHomeVisitCount } from '../hooks/useHomeVisitCount';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -30,6 +31,11 @@ const Admin: React.FC = () => {
   const { data, updateSection, toggleSectionVisibility, articles, addArticle, updateArticle, deleteArticle, testimonials, addTestimonial, updateTestimonial, deleteTestimonial, clients, addClient, updateClient, deleteClient, videos, addVideo, updateVideo, deleteVideo } = useData();
   const { logout, changePassword } = useAuth();
   const navigate = useNavigate();
+  // Admin displays the total only (never inserts, so Admin page doesn't affect counting).
+  const { count: homeVisitCount, isLoading: isVisitCountLoading } = useHomeVisitCount({
+    registerVisit: false,
+    fetchCount: true,
+  });
   const [activeTab, setActiveTab] = useState<AdminTab | null>(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -402,6 +408,26 @@ const Admin: React.FC = () => {
 
         {/* Quick Access Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Stats card (read-only): shows homepage visits without affecting counting */}
+          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                <Users size={24} />
+              </div>
+              <span className="text-xs font-bold text-gray-400">إحصائيات</span>
+            </div>
+            <h3 className="text-xl font-bold text-secondary mb-2">زيارات الصفحة الرئيسية</h3>
+            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
+              {typeof homeVisitCount === 'number'
+                ? homeVisitCount.toLocaleString('ar')
+                : isVisitCountLoading
+                  ? '...'
+                  : '--'}
+            </div>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              يتم تحديثه من قاعدة البيانات، ولوحة التحكم لا تزيد العداد.
+            </p>
+          </div>
           {dashboardCards.map((card) => {
             const CardIcon = card.icon;
             const isActive = activeTab === card.id;

@@ -192,3 +192,54 @@ CREATE TRIGGER update_videos_updated_at BEFORE UPDATE ON videos
 
 -- ملاحظة: يمكنك إنشاء policies لـ RLS حسب احتياجاتك
 
+-- ============================================
+-- 8. جدول زيارات الصفحات (Homepage Visitor Counter)
+-- ============================================
+-- هدف التصميم:
+-- - تخزين أقل قدر ممكن من البيانات (page + visited_at فقط)
+-- - العد يتم مرة واحدة لكل session في الواجهة (sessionStorage)
+-- - تجنب كشف الصفوف للعامة: نستخدم RPC لإرجاع العدد فقط
+
+-- امتداد uuid (غالباً متوفر في Supabase، لكن نضمنه للتشغيل المتكرر)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE IF NOT EXISTS public.page_visits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  page TEXT NOT NULL,
+  visited_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- فهرس بسيط لدعم count(*) مع filter على page
+CREATE INDEX IF NOT EXISTS idx_page_visits_page ON public.page_visits(page);
+
+-- حماية الجدول عبر RLS
+ALTER TABLE public.page_visits ENABLE ROW LEVEL SECURITY;
+
+-- نقيد الإدخال على الصفحة الرئيسية فقط (لمنع إدخال صفحات عشوائية عبر المفتاح العام).
+DROP POLICY IF EXISTS allow_insert_home_visits ON public.page_visits;
+CREATE POLICY allow_insert_home_visits
+  ON public.page_visits
+  FOR INSERT
+  TO anon, authenticated
+  WITH CHECK (page = 'home');
+
+-- قفل القراءة المباشرة للصفوف للعامة، والسماح فقط بالإدخال
+REVOKE ALL ON TABLE public.page_visits FROM anon, authenticated;
+GRANT INSERT ON TABLE public.page_visits TO anon, authenticated;
+
+-- RPC لإرجاع عدد الزيارات بدون كشف الصفوف (تقليل bandwidth + تقليل surface area)
+CREATE OR REPLACE FUNCTION public.get_page_visit_count(p_page TEXT)
+RETURNS BIGINT
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COUNT(*)::BIGINT
+  FROM public.page_visits
+  WHERE page = p_page;
+$$;
+
+REVOKE ALL ON FUNCTION public.get_page_visit_count(TEXT) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_page_visit_count(TEXT) TO anon, authenticated;
+

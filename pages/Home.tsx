@@ -9,6 +9,7 @@ import Button from '../components/Button';
 import SectionHeading from '../components/SectionHeading';
 import { FEATURES } from '../data/constants';
 import { useData } from '../contexts/DataContext';
+import { useHomeVisitCount } from '../hooks/useHomeVisitCount';
 
 // Icon mapping for features - needed because icons can't be serialized to localStorage
 const FEATURE_ICONS = [Briefcase, Users, Clock, Scale, Gavel, Shield];
@@ -19,6 +20,8 @@ const Home: React.FC = () => {
   const articles = contextData?.articles || [];
   const clients = contextData?.clients || [];
   const videos = contextData?.videos || [];
+  // Count a homepage visit once per session. We don't fetch the total here to avoid extra Supabase reads.
+  useHomeVisitCount({ registerVisit: true, fetchCount: false });
   
   // Safety check: ensure data exists, but be more lenient
   if (!data || !contextData) {
