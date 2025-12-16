@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
 import { getVideoThumbnail, getVideoInfo, detectVideoPlatform } from '../utils/videoThumbnail';
 import { FEATURES } from '../data/constants';
+import { useHomeVisitCount } from '../hooks/useHomeVisitCount';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -30,6 +31,11 @@ const Admin: React.FC = () => {
   const { data, updateSection, toggleSectionVisibility, articles, addArticle, updateArticle, deleteArticle, testimonials, addTestimonial, updateTestimonial, deleteTestimonial, clients, addClient, updateClient, deleteClient, videos, addVideo, updateVideo, deleteVideo } = useData();
   const { logout, changePassword } = useAuth();
   const navigate = useNavigate();
+  // Admin displays the total only (never inserts, so Admin page doesn't affect counting).
+  const { count: homeVisitCount, isLoading: isVisitCountLoading } = useHomeVisitCount({
+    registerVisit: false,
+    fetchCount: true,
+  });
   const [activeTab, setActiveTab] = useState<AdminTab | null>(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -379,6 +385,16 @@ const Admin: React.FC = () => {
               <div>
                 <h1 className="text-3xl font-bold text-secondary">لوحة التحكم</h1>
                 <p className="text-gray-600 mt-1">إدارة محتوى الموقع</p>
+                <div className="mt-2 text-sm text-gray-600">
+                  <span className="font-bold text-secondary">زيارات الصفحة الرئيسية: </span>
+                  <span className="font-bold text-primary">
+                    {typeof homeVisitCount === 'number'
+                      ? homeVisitCount.toLocaleString('ar')
+                      : isVisitCountLoading
+                        ? '...'
+                        : '--'}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row w-full lg:w-auto items-stretch sm:items-center gap-3">
