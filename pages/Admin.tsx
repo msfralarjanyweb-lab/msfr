@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Article, Testimonial, Client, VideoItem } from '../types';
 import { getVideoThumbnail, getVideoInfo, detectVideoPlatform } from '../utils/videoThumbnail';
 import { FEATURES } from '../data/constants';
-import { useHomeVisitCount } from '../hooks/useHomeVisitCount';
+import { supabase } from '../lib/supabase';
 
 type AdminTab = 'sections' | 'articles' | 'testimonials' | 'clients' | 'videos' | 'password';
 
@@ -31,11 +31,9 @@ const Admin: React.FC = () => {
   const { data, updateSection, toggleSectionVisibility, articles, addArticle, updateArticle, deleteArticle, testimonials, addTestimonial, updateTestimonial, deleteTestimonial, clients, addClient, updateClient, deleteClient, videos, addVideo, updateVideo, deleteVideo } = useData();
   const { logout, changePassword } = useAuth();
   const navigate = useNavigate();
-  // Admin displays the total only (never inserts, so Admin page doesn't affect counting).
-  const { count: homeVisitCount, isLoading: isVisitCountLoading } = useHomeVisitCount({
-    registerVisit: false,
-    fetchCount: true,
-  });
+  const [humanVisitCount, setHumanVisitCount] = useState<number | null>(null);
+  const [botVisitCount, setBotVisitCount] = useState<number | null>(null);
+  const [isVisitCountsLoading, setIsVisitCountsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<AdminTab | null>(null);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -98,6 +96,41 @@ const Admin: React.FC = () => {
 
     notificationTimeouts.current[id] = timeoutId;
   }, [removeNotification]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadVisitCounts = async () => {
+      setIsVisitCountsLoading(true);
+      try {
+        const [humanResult, botResult] = await Promise.all([
+          supabase.from('page_visits').select('*', { count: 'exact', head: true }).eq('is_bot', false),
+          supabase.from('page_visits').select('*', { count: 'exact', head: true }).eq('is_bot', true),
+        ]);
+
+        if (humanResult.error) throw humanResult.error;
+        if (botResult.error) throw botResult.error;
+
+        if (!cancelled) {
+          setHumanVisitCount(typeof humanResult.count === 'number' ? humanResult.count : 0);
+          setBotVisitCount(typeof botResult.count === 'number' ? botResult.count : 0);
+        }
+      } catch (error) {
+        console.error('Error loading visit counts:', error);
+        if (!cancelled) {
+          setHumanVisitCount(null);
+          setBotVisitCount(null);
+        }
+      } finally {
+        if (!cancelled) setIsVisitCountsLoading(false);
+      }
+    };
+
+    void loadVisitCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -408,7 +441,6 @@ const Admin: React.FC = () => {
 
         {/* Quick Access Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Stats card (read-only): shows homepage visits without affecting counting */}
           <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
             <div className="flex items-center justify-between mb-4">
               <div className="p-3 rounded-xl bg-primary/10 text-primary">
@@ -416,17 +448,30 @@ const Admin: React.FC = () => {
               </div>
               <span className="text-xs font-bold text-gray-400">إحصائيات</span>
             </div>
-            <h3 className="text-xl font-bold text-secondary mb-2">زيارات الصفحة الرئيسية</h3>
+            <h3 className="text-xl font-bold text-secondary mb-2">عدد الزيارات الحقيقية</h3>
             <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
-              {typeof homeVisitCount === 'number'
-                ? homeVisitCount.toLocaleString('ar')
-                : isVisitCountLoading
+              {typeof humanVisitCount === 'number'
+                ? humanVisitCount.toLocaleString('ar')
+                : isVisitCountsLoading
                   ? '...'
                   : '--'}
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              يتم تحديثه من قاعدة البيانات، ولوحة التحكم لا تزيد العداد.
-            </p>
+          </div>
+          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                <Users size={24} />
+              </div>
+              <span className="text-xs font-bold text-gray-400">إحصائيات</span>
+            </div>
+            <h3 className="text-xl font-bold text-secondary mb-2">عدد البوتات</h3>
+            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
+              {typeof botVisitCount === 'number'
+                ? botVisitCount.toLocaleString('ar')
+                : isVisitCountsLoading
+                  ? '...'
+                  : '--'}
+            </div>
           </div>
           {dashboardCards.map((card) => {
             const CardIcon = card.icon;
