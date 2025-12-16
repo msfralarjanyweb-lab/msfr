@@ -9,6 +9,7 @@ import Button from '../components/Button';
 import SectionHeading from '../components/SectionHeading';
 import { FEATURES } from '../data/constants';
 import { useData } from '../contexts/DataContext';
+import { useHomeVisitCount } from '../hooks/useHomeVisitCount';
 
 // Icon mapping for features - needed because icons can't be serialized to localStorage
 const FEATURE_ICONS = [Briefcase, Users, Clock, Scale, Gavel, Shield];
@@ -19,6 +20,7 @@ const Home: React.FC = () => {
   const articles = contextData?.articles || [];
   const clients = contextData?.clients || [];
   const videos = contextData?.videos || [];
+  const { count: homeVisitCount } = useHomeVisitCount();
   
   // Safety check: ensure data exists, but be more lenient
   if (!data || !contextData) {
@@ -141,6 +143,13 @@ const Home: React.FC = () => {
               {/* Text Content */}
               <div className="space-y-8 md:pl-10 order-2 md:order-1 fade-in-up py-10 md:py-0">
                 <span className="text-primary font-bold tracking-widest text-base uppercase">{safeData?.hero?.badge || 'شركة محاماة رائدة'}</span>
+                <div className="text-sm text-gray-600 font-medium">
+                  {/* Public counter: uses sessionStorage to avoid double-counting within a session */}
+                  عدد زيارات الصفحة الرئيسية:{' '}
+                  <span className="font-bold text-secondary">
+                    {typeof homeVisitCount === 'number' ? homeVisitCount.toLocaleString('ar') : '...'}
+                  </span>
+                </div>
                 <h1 className="text-5xl md:text-7xl font-bold text-secondary leading-tight">
                   {safeData?.hero?.title || 'استخدم خبرتنا'} <br />
                   <span className="text-primary">{safeData?.hero?.titleHighlight || 'القانونية الفعالة'}</span>
