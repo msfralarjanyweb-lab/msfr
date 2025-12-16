@@ -104,16 +104,18 @@ const Admin: React.FC = () => {
       setIsVisitCountsLoading(true);
       try {
         const [humanResult, botResult] = await Promise.all([
-          supabase.from('page_visits').select('*', { count: 'exact', head: true }).eq('is_bot', false),
-          supabase.from('page_visits').select('*', { count: 'exact', head: true }).eq('is_bot', true),
+          supabase.rpc('get_page_visit_count_by_is_bot', { p_is_bot: false }),
+          supabase.rpc('get_page_visit_count_by_is_bot', { p_is_bot: true }),
         ]);
 
         if (humanResult.error) throw humanResult.error;
         if (botResult.error) throw botResult.error;
 
         if (!cancelled) {
-          setHumanVisitCount(typeof humanResult.count === 'number' ? humanResult.count : 0);
-          setBotVisitCount(typeof botResult.count === 'number' ? botResult.count : 0);
+          const nextHumanCount = Number(humanResult.data);
+          const nextBotCount = Number(botResult.data);
+          setHumanVisitCount(Number.isFinite(nextHumanCount) ? nextHumanCount : 0);
+          setBotVisitCount(Number.isFinite(nextBotCount) ? nextBotCount : 0);
         }
       } catch (error) {
         console.error('Error loading visit counts:', error);
@@ -448,29 +450,28 @@ const Admin: React.FC = () => {
               </div>
               <span className="text-xs font-bold text-gray-400">إحصائيات</span>
             </div>
-            <h3 className="text-xl font-bold text-secondary mb-2">عدد الزيارات الحقيقية</h3>
-            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
-              {typeof humanVisitCount === 'number'
-                ? humanVisitCount.toLocaleString('ar')
-                : isVisitCountsLoading
-                  ? '...'
-                  : '--'}
-            </div>
-          </div>
-          <div className="text-right rounded-2xl p-5 bg-white border border-transparent shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-primary/10 text-primary">
-                <Users size={24} />
+            <div className="space-y-4">
+              <div className="flex items-end justify-between gap-4">
+                <div className="text-sm font-bold text-secondary">عدد الزيارات الحقيقية</div>
+                <div className="text-3xl font-bold text-primary leading-none" dir="ltr">
+                  {typeof humanVisitCount === 'number'
+                    ? humanVisitCount.toLocaleString('ar')
+                    : isVisitCountsLoading
+                      ? '...'
+                      : '--'}
+                </div>
               </div>
-              <span className="text-xs font-bold text-gray-400">إحصائيات</span>
-            </div>
-            <h3 className="text-xl font-bold text-secondary mb-2">عدد البوتات</h3>
-            <div className="text-3xl font-bold text-primary leading-none mb-2" dir="ltr">
-              {typeof botVisitCount === 'number'
-                ? botVisitCount.toLocaleString('ar')
-                : isVisitCountsLoading
-                  ? '...'
-                  : '--'}
+              <div className="h-px bg-gray-100" />
+              <div className="flex items-end justify-between gap-4">
+                <div className="text-sm font-bold text-secondary">عدد البوتات</div>
+                <div className="text-3xl font-bold text-primary leading-none" dir="ltr">
+                  {typeof botVisitCount === 'number'
+                    ? botVisitCount.toLocaleString('ar')
+                    : isVisitCountsLoading
+                      ? '...'
+                      : '--'}
+                </div>
+              </div>
             </div>
           </div>
           {dashboardCards.map((card) => {
