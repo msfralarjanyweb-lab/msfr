@@ -278,25 +278,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!articlesError && articlesData && articlesData.length > 0) {
-      const formattedArticles: Article[] = articlesData.map((item: any) => ({
-        title: item.title,
-        excerpt: item.excerpt,
-        content: item.content || '',
-        date: item.date,
-        category: item.category,
-        image: item.image,
-      }));
-      setArticles(formattedArticles);
-      
-      setData(prev => ({
-        ...prev,
-        news: {
-          ...prev.news,
-          items: formattedArticles,
-        },
-      }));
+    if (articlesError) {
+      console.error('Error reloading articles:', articlesError);
+      return;
     }
+
+    // IMPORTANT: even when the table is empty, we must update state to [].
+    // Otherwise deletes "work" in DB but the UI keeps showing stale items.
+    const formattedArticles: Article[] = (articlesData ?? []).map((item: any) => ({
+      title: item.title,
+      excerpt: item.excerpt,
+      content: item.content || '',
+      date: item.date,
+      category: item.category,
+      image: item.image,
+    }));
+
+    setArticles(formattedArticles);
+    setData((prev) => ({
+      ...prev,
+      news: {
+        ...prev.news,
+        items: formattedArticles,
+      },
+    }));
   };
 
   // دالة مساعدة لإعادة تحميل آراء العملاء
@@ -306,24 +311,29 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!testimonialsError && testimonialsData && testimonialsData.length > 0) {
-      const formattedTestimonials: Testimonial[] = testimonialsData.map((item: any) => ({
-        name: item.name,
-        role: item.role,
-        content: item.content,
-        image: item.image,
-        date: item.date,
-      }));
-      setTestimonials(formattedTestimonials);
-      
-      setData(prev => ({
-        ...prev,
-        testimonials: {
-          ...prev.testimonials,
-          items: formattedTestimonials,
-        },
-      }));
+    if (testimonialsError) {
+      console.error('Error reloading testimonials:', testimonialsError);
+      return;
     }
+
+    // IMPORTANT: even when the table is empty, we must update state to [].
+    // Otherwise deletes "work" in DB but the UI keeps showing stale items.
+    const formattedTestimonials: Testimonial[] = (testimonialsData ?? []).map((item: any) => ({
+      name: item.name,
+      role: item.role,
+      content: item.content,
+      image: item.image,
+      date: item.date,
+    }));
+
+    setTestimonials(formattedTestimonials);
+    setData((prev) => ({
+      ...prev,
+      testimonials: {
+        ...prev.testimonials,
+        items: formattedTestimonials,
+      },
+    }));
   };
 
   // دالة مساعدة لإعادة تحميل الفيديوهات
