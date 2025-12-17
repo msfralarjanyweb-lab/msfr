@@ -10,6 +10,10 @@ import { ARTICLES, TESTIMONIALS } from '../data/constants';
 export async function migrateLocalStorageToSupabase() {
   try {
     console.log('🚀 بدء عملية نقل البيانات من localStorage إلى Supabase...');
+    const sessionToken = localStorage.getItem('sessionToken');
+    if (!sessionToken) {
+      throw new Error('يجب تسجيل الدخول كمسؤول قبل تشغيل أداة النقل (sessionToken غير موجود).');
+    }
 
     // 1. نقل بيانات الموقع (siteData)
     const siteDataStr = localStorage.getItem('siteData');
@@ -25,14 +29,12 @@ export async function migrateLocalStorageToSupabase() {
       }
     }
 
-    // حفظ بيانات الموقع في Supabase
-    const { error: siteDataError } = await supabase
-      .from('site_data')
-      .upsert({
-        id: '00000000-0000-0000-0000-000000000001',
-        data: siteData,
-        updated_at: new Date().toISOString(),
-      });
+    // حفظ بيانات الموقع في Supabase (عبر RPC لتفادي مشاكل RLS)
+    const { error: siteDataError } = await supabase.rpc('admin_upsert_site_data', {
+      p_session_token: sessionToken,
+      p_id: '00000000-0000-0000-0000-000000000001',
+      p_data: siteData,
+    });
 
     if (siteDataError) {
       console.error('❌ خطأ في حفظ بيانات الموقع:', siteDataError);
@@ -56,21 +58,24 @@ export async function migrateLocalStorageToSupabase() {
     // حذف المقالات القديمة (اختياري - يمكنك الاحتفاظ بها)
     // await supabase.from('articles').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
-    // إضافة المقالات إلى Supabase
+    // إضافة المقالات إلى Supabase (عبر RPC لتفادي مشاكل RLS)
     if (articles && articles.length > 0) {
-      const articlesToInsert = articles.map((article, index) => ({
-        title: article.title,
-        excerpt: article.excerpt,
-        content: article.content || '',
-        date: article.date,
-        category: article.category,
-        image: article.image,
-        display_order: index,
-      }));
-
-      const { error: articlesError } = await supabase
-        .from('articles')
-        .upsert(articlesToInsert, { onConflict: 'title' });
+      let articlesError: any = null;
+      for (const article of articles) {
+        const { error } = await supabase.rpc('admin_insert_article', {
+          p_session_token: sessionToken,
+          p_title: article.title,
+          p_excerpt: article.excerpt,
+          p_content: article.content || '',
+          p_date: article.date,
+          p_category: article.category,
+          p_image: article.image,
+        });
+        if (error) {
+          articlesError = error;
+          break;
+        }
+      }
 
       if (articlesError) {
         console.error('❌ خطأ في حفظ المقالات:', articlesError);
@@ -92,20 +97,23 @@ export async function migrateLocalStorageToSupabase() {
       }
     }
 
-    // إضافة آراء العملاء إلى Supabase
+    // إضافة آراء العملاء إلى Supabase (عبر RPC لتفادي مشاكل RLS)
     if (testimonials && testimonials.length > 0) {
-      const testimonialsToInsert = testimonials.map((testimonial, index) => ({
-        name: testimonial.name,
-        role: testimonial.role,
-        content: testimonial.content,
-        image: testimonial.image,
-        date: testimonial.date,
-        display_order: index,
-      }));
-
-      const { error: testimonialsError } = await supabase
-        .from('testimonials')
-        .upsert(testimonialsToInsert, { onConflict: 'id' });
+      let testimonialsError: any = null;
+      for (const testimonial of testimonials) {
+        const { error } = await supabase.rpc('admin_insert_testimonial', {
+          p_session_token: sessionToken,
+          p_name: testimonial.name,
+          p_role: testimonial.role,
+          p_content: testimonial.content,
+          p_image: testimonial.image,
+          p_date: testimonial.date,
+        });
+        if (error) {
+          testimonialsError = error;
+          break;
+        }
+      }
 
       if (testimonialsError) {
         console.error('❌ خطأ في حفظ آراء العملاء:', testimonialsError);

@@ -17,11 +17,17 @@ const Login: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(username, password);
-      if (success) {
+      const result = await login(username, password);
+      if (result.success) {
         navigate('/admin');
       } else {
-        setError('اسم المستخدم أو كلمة المرور غير صحيحة');
+        if (result.kind === 'permission') {
+          setError('يوجد خطأ في صلاحيات قاعدة البيانات (RLS). تواصل مع مدير النظام لإصلاح الإعدادات.');
+        } else if (result.kind === 'invalid_credentials') {
+          setError('اسم المستخدم أو كلمة المرور غير صحيحة');
+        } else {
+          setError(result.error || 'حدث خطأ أثناء تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);

@@ -3,7 +3,10 @@ import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (
+    username: string,
+    password: string
+  ) => Promise<{ success: boolean; kind?: 'invalid_credentials' | 'permission' | 'unknown'; error?: string }>;
   logout: () => void;
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
@@ -11,12 +14,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// دالة بسيطة لمقارنة كلمات المرور (للاستخدام المؤقت)
-// في الإنتاج، يجب استخدام bcrypt أو Supabase Auth
-function simplePasswordCompare(inputPassword: string, storedPassword: string): boolean {
-  // للتبسيط، نستخدم مقارنة مباشرة
-  // في الإنتاج، يجب استخدام bcrypt.compare()
-  return inputPassword === storedPassword;
+function isPermissionError(e: any): boolean {
+  const code = typeof e?.code === 'string' ? e.code : '';
+  const message = typeof e?.message === 'string' ? e.message.toLowerCase() : '';
+  return (
+    code === '42501' || // insufficient_privilege
+    message.includes('row level security') ||
+    message.includes('rls') ||
+    message.includes('permission denied') ||
+    message.includes('not authorized')
+  );
 }
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -33,15 +40,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // التحقق من وجود session token في localStorage
       const sessionToken = localStorage.getItem('sessionToken');
       if (sessionToken) {
-        // التحقق من صحة الـ session في قاعدة البيانات
-        const { data, error } = await supabase
-          .from('user_sessions')
-          .select('*')
-          .eq('session_token', sessionToken)
-          .gt('expires_at', new Date().toISOString())
-          .single();
+        // IMPORTANT: With RLS enabled, the frontend must NOT query `user_sessions` directly.
+        // Validate via SECURITY DEFINER RPC.
+        const { data, error } = await supabase.rpc('validate_session', { p_session_token: sessionToken });
+        const row = Array.isArray(data) ? data[0] : (data as any);
+        const isValid = row?.is_valid === true;
 
-        if (data && !error) {
+        if (!error && isValid) {
           setIsAuthenticated(true);
         } else {
           // Session غير صالحة أو منتهية
@@ -57,55 +62,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (
+    username: string,
+    password: string
+  ): Promise<{ success: boolean; kind?: 'invalid_credentials' | 'permission' | 'unknown'; error?: string }> => {
     try {
       setIsLoading(true);
       
-      // البحث عن المستخدم في قاعدة البيانات
-      const { data: user, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('username', username)
-        .single();
+      // IMPORTANT: With RLS enabled, the frontend must NOT read from `users` or write to `user_sessions`.
+      // Use the SECURITY DEFINER login RPC.
+      const { data, error } = await supabase.rpc('login_with_password', {
+        p_username: username,
+        p_password: password,
+      });
 
-      if (error || !user) {
-        // المستخدم غير موجود في قاعدة البيانات
-        setIsLoading(false);
-        return false;
+      if (error) {
+        const msg = typeof (error as any)?.message === 'string' ? (error as any).message : '';
+        if (msg.includes('invalid_credentials')) {
+          return { success: false, kind: 'invalid_credentials' };
+        }
+        if (isPermissionError(error)) {
+          return {
+            success: false,
+            kind: 'permission',
+            error: 'Database permissions are misconfigured (RLS).',
+          };
+        }
+        return { success: false, kind: 'unknown', error: error.message };
       }
 
-      // مقارنة كلمة المرور
-      // ملاحظة: في الإنتاج، يجب استخدام bcrypt.compare()
-      // للتبسيط، نستخدم مقارنة مباشرة (يجب تحديثها لاستخدام bcrypt)
-      const passwordMatch = simplePasswordCompare(password, user.password_hash);
+      const row = Array.isArray(data) ? data[0] : (data as any);
+      const sessionToken = row?.session_token as string | undefined;
 
-      if (passwordMatch) {
-        // إنشاء session جديد
-        const sessionToken = generateSessionToken();
-        const expiresAt = new Date();
-        expiresAt.setHours(expiresAt.getHours() + 24); // 24 ساعة
-
-        // حفظ الـ session في قاعدة البيانات
-        await supabase
-          .from('user_sessions')
-          .insert({
-            user_id: user.id,
-            session_token: sessionToken,
-            expires_at: expiresAt.toISOString(),
-          });
-
-        localStorage.setItem('sessionToken', sessionToken);
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return true;
+      if (!sessionToken) {
+        return { success: false, kind: 'unknown', error: 'Login RPC did not return a session token.' };
       }
 
-      setIsLoading(false);
-      return false;
+      localStorage.setItem('sessionToken', sessionToken);
+      setIsAuthenticated(true);
+      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
+      if (isPermissionError(error)) {
+        return {
+          success: false,
+          kind: 'permission',
+          error: 'Database permissions are misconfigured (RLS).',
+        };
+      }
+      return { success: false, kind: 'unknown', error: 'Unexpected login error' };
+    } finally {
       setIsLoading(false);
-      return false;
     }
   };
 
@@ -113,11 +120,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const sessionToken = localStorage.getItem('sessionToken');
       if (sessionToken) {
-        // حذف الـ session من قاعدة البيانات
-        await supabase
-          .from('user_sessions')
-          .delete()
-          .eq('session_token', sessionToken);
+        // IMPORTANT: With RLS enabled, do not delete directly from `user_sessions`.
+        await supabase.rpc('logout_session', { p_session_token: sessionToken });
       }
     } catch (error) {
       console.error('Logout error:', error);
@@ -127,14 +131,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // دالة لإنشاء session token عشوائي
-  const generateSessionToken = (): string => {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`;
-  };
-
   const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // التحقق من كلمة المرور الحالية
       const sessionToken = localStorage.getItem('sessionToken');
       if (!sessionToken) {
         return { success: false, error: 'يجب تسجيل الدخول أولاً' };
@@ -150,46 +148,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return { success: false, error: 'كلمة المرور الجديدة يجب أن تكون مختلفة عن الحالية' };
       }
 
-      // الحصول على معلومات المستخدم من الـ session
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('user_sessions')
-        .select('user_id')
-        .eq('session_token', sessionToken)
-        .single();
+      // IMPORTANT: With RLS enabled, change password via SECURITY DEFINER RPC.
+      const { error } = await supabase.rpc('change_password_with_session', {
+        p_session_token: sessionToken,
+        p_current_password: currentPassword,
+        p_new_password: newPassword,
+      });
 
-      let user = null;
-      let userError = null;
-
-      // إذا كان هناك user_id في session، احصل على بيانات المستخدم
-      if (sessionData && sessionData.user_id) {
-        const result = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', sessionData.user_id)
-          .single();
-        user = result.data;
-        userError = result.error;
-      }
-
-      // التحقق من وجود المستخدم
-      if (userError || !user) {
-        return { success: false, error: 'المستخدم غير موجود في قاعدة البيانات' };
-      }
-
-      // التحقق من كلمة المرور الحالية
-      const passwordMatch = simplePasswordCompare(currentPassword, user.password_hash);
-
-      if (!passwordMatch) {
-        return { success: false, error: 'كلمة المرور الحالية غير صحيحة' };
-      }
-
-      // تحديث كلمة المرور للمستخدم الموجود
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ password_hash: newPassword })
-        .eq('id', user.id);
-
-      if (updateError) {
+      if (error) {
+        const msg = typeof (error as any)?.message === 'string' ? (error as any).message : '';
+        if (msg.includes('invalid_current_password')) {
+          return { success: false, error: 'كلمة المرور الحالية غير صحيحة' };
+        }
+        if (msg.includes('password_too_short')) {
+          return { success: false, error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' };
+        }
+        if (msg.includes('invalid_session')) {
+          return { success: false, error: 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.' };
+        }
         return { success: false, error: 'فشل تحديث كلمة المرور' };
       }
 
