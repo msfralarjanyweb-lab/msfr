@@ -20,6 +20,7 @@ const Home: React.FC = () => {
   const articles = contextData?.articles || [];
   const clients = contextData?.clients || [];
   const videos = contextData?.videos || [];
+  const isLoading = contextData?.isLoading ?? false;
   // Count a homepage visit once per session. We don't fetch the total here to avoid extra Supabase reads.
   useHomeVisitCount({ registerVisit: true, fetchCount: false });
   
@@ -384,6 +385,11 @@ const Home: React.FC = () => {
                     <ArrowRight className="w-5 h-5 md:w-6 md:h-6 rotate-180" />
                   </div>
                 </div>
+              </div>
+            ) : isLoading ? (
+              <div className="text-center py-10">
+                <p className="text-gray-600 text-lg mb-4">جاري تحميل العملاء...</p>
+                <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
               </div>
             ) : (
               <div className="text-center py-8">
