@@ -603,6 +603,21 @@ const Admin: React.FC = () => {
                 </div>
               );
             })}
+
+            {/* Close tab */}
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingSection(null);
+                  setActiveTab(null);
+                }}
+                className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+              >
+                <X size={20} />
+                <span>إلغاء</span>
+              </button>
+            </div>
           </div>
           )}
 
@@ -612,6 +627,7 @@ const Admin: React.FC = () => {
             {/* Add New Article Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <button
+                type="button"
                 onClick={() => {
                   setEditingArticle(null);
                   setNewArticle({
@@ -685,6 +701,7 @@ const Admin: React.FC = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                           <button
+                            type="button"
                             onClick={() => {
                               setEditingArticle(index);
                               setNewArticle({ ...articles[index] });
@@ -695,6 +712,7 @@ const Admin: React.FC = () => {
                             <span>تعديل</span>
                           </button>
                           <button
+                            type="button"
                             onClick={async () => {
                               if (window.confirm('هل أنت متأكد من حذف هذا المقال؟')) {
                                 try {
@@ -727,6 +745,7 @@ const Admin: React.FC = () => {
             {/* Add New Video Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <button
+                type="button"
                 onClick={() => {
                   setEditingVideo(null);
                   setIsAddingVideo(true);
@@ -799,6 +818,7 @@ const Admin: React.FC = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                           <button
+                            type="button"
                             onClick={() => {
                               setEditingVideo(index);
                               setIsAddingVideo(false);
@@ -810,6 +830,7 @@ const Admin: React.FC = () => {
                             <span>تعديل</span>
                           </button>
                           <button
+                            type="button"
                             onClick={async () => {
                               if (window.confirm('هل أنت متأكد من حذف هذا الفيديو؟')) {
                                 try {
@@ -842,6 +863,7 @@ const Admin: React.FC = () => {
             {/* Add New Client Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <button
+                type="button"
                 onClick={() => {
                   setEditingClient(null);
                   setIsAddingClient(true);
@@ -904,6 +926,7 @@ const Admin: React.FC = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                           <button
+                            type="button"
                             onClick={() => {
                               setEditingClient(index);
                               setIsAddingClient(false);
@@ -915,6 +938,7 @@ const Admin: React.FC = () => {
                             <span>تعديل</span>
                           </button>
                           <button
+                            type="button"
                             onClick={async () => {
                               if (window.confirm('هل أنت متأكد من حذف هذا العميل؟')) {
                                 try {
@@ -947,6 +971,7 @@ const Admin: React.FC = () => {
             {/* Add New Testimonial Button */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <button
+                type="button"
                 onClick={() => {
                   setEditingTestimonial(null);
                   setNewTestimonial({
@@ -1018,6 +1043,7 @@ const Admin: React.FC = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-4">
                           <button
+                            type="button"
                             onClick={() => {
                               setEditingTestimonial(index);
                               setNewTestimonial({ ...testimonials[index] });
@@ -1028,6 +1054,7 @@ const Admin: React.FC = () => {
                             <span>تعديل</span>
                           </button>
                           <button
+                            type="button"
                             onClick={async () => {
                               if (window.confirm('هل أنت متأكد من حذف هذا الرأي؟')) {
                                 try {
@@ -1516,6 +1543,7 @@ const ArticleForm: React.FC<{
       />
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
+          type="button"
           onClick={onSave}
           className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
@@ -1523,6 +1551,7 @@ const ArticleForm: React.FC<{
           <span>حفظ</span>
         </button>
         <button
+          type="button"
           onClick={onCancel}
           className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
         >
@@ -1763,6 +1792,7 @@ const TestimonialForm: React.FC<{
       />
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
+          type="button"
           onClick={onSave}
           className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
@@ -1770,6 +1800,7 @@ const TestimonialForm: React.FC<{
           <span>حفظ</span>
         </button>
         <button
+          type="button"
           onClick={onCancel}
           className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
         >
@@ -1804,6 +1835,7 @@ const ClientForm: React.FC<{
       />
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
+          type="button"
           onClick={onSave}
           className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
@@ -1811,6 +1843,7 @@ const ClientForm: React.FC<{
           <span>حفظ</span>
         </button>
         <button
+          type="button"
           onClick={onCancel}
           className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
         >
@@ -1925,6 +1958,7 @@ const VideoForm: React.FC<{
       )}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
         <button
+          type="button"
           onClick={onSave}
           className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
         >
@@ -1932,6 +1966,7 @@ const VideoForm: React.FC<{
           <span>حفظ</span>
         </button>
         <button
+          type="button"
           onClick={onCancel}
           className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
         >
