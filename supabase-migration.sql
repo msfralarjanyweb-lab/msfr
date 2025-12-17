@@ -4,6 +4,14 @@
 -- قم بتنفيذ هذا السكريبت في Supabase SQL Editor
 -- Dashboard > SQL Editor > New Query
 
+-- 0. Required extensions (needed for gen_random_uuid/gen_random_bytes)
+-- Supabase عادةً يضع الإضافات داخل schema اسمها extensions
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
+
+-- Ensure unqualified calls resolve during this migration
+SET search_path = public, extensions;
+
 -- 1. جدول المستخدمين (Authentication)
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -200,8 +208,6 @@ CREATE TRIGGER update_videos_updated_at BEFORE UPDATE ON videos
 -- - العد يتم مرة واحدة لكل session في الواجهة (sessionStorage)
 -- - تجنب كشف الصفوف للعامة: نستخدم RPC لإرجاع العدد فقط
 
--- امتداد uuid (غالباً متوفر في Supabase، لكن نضمنه للتشغيل المتكرر)
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE IF NOT EXISTS public.page_visits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -233,7 +239,7 @@ RETURNS BIGINT
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   SELECT COUNT(*)::BIGINT
   FROM public.page_visits
@@ -362,7 +368,7 @@ RETURNS TABLE(is_valid BOOLEAN, user_id UUID)
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   SELECT
     (s.id IS NOT NULL) AS is_valid,
@@ -382,7 +388,7 @@ CREATE OR REPLACE FUNCTION public.login_with_password(p_username TEXT, p_passwor
 RETURNS TABLE(session_token TEXT, expires_at TIMESTAMPTZ)
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_user_id UUID;
@@ -420,7 +426,7 @@ CREATE OR REPLACE FUNCTION public.logout_session(p_session_token TEXT)
 RETURNS VOID
 LANGUAGE sql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   DELETE FROM public.user_sessions
   WHERE session_token = p_session_token;
@@ -435,7 +441,7 @@ CREATE OR REPLACE FUNCTION public.change_password_with_session(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_user_id UUID;
@@ -479,7 +485,7 @@ RETURNS UUID
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_user_id UUID;
@@ -506,7 +512,7 @@ CREATE OR REPLACE FUNCTION public.admin_upsert_site_data(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -537,7 +543,7 @@ CREATE OR REPLACE FUNCTION public.admin_insert_article(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_id UUID;
@@ -563,7 +569,7 @@ CREATE OR REPLACE FUNCTION public.admin_update_article(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -586,7 +592,7 @@ CREATE OR REPLACE FUNCTION public.admin_delete_article(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -606,7 +612,7 @@ CREATE OR REPLACE FUNCTION public.admin_insert_testimonial(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_id UUID;
@@ -631,7 +637,7 @@ CREATE OR REPLACE FUNCTION public.admin_update_testimonial(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -653,7 +659,7 @@ CREATE OR REPLACE FUNCTION public.admin_delete_testimonial(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -671,7 +677,7 @@ CREATE OR REPLACE FUNCTION public.admin_insert_client(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_id UUID;
@@ -693,7 +699,7 @@ CREATE OR REPLACE FUNCTION public.admin_update_client(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -712,7 +718,7 @@ CREATE OR REPLACE FUNCTION public.admin_delete_client(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -731,7 +737,7 @@ CREATE OR REPLACE FUNCTION public.admin_insert_video(
 RETURNS UUID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 DECLARE
   v_id UUID;
@@ -755,7 +761,7 @@ CREATE OR REPLACE FUNCTION public.admin_update_video(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
@@ -776,7 +782,7 @@ CREATE OR REPLACE FUNCTION public.admin_delete_video(
 RETURNS VOID
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, extensions
 AS $$
 BEGIN
   PERFORM public.require_admin_session(p_session_token);
