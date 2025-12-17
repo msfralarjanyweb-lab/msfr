@@ -249,6 +249,33 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 const SITE_DATA_ID = '00000000-0000-0000-0000-000000000001';
+const CLIENTS_CACHE_KEY = 'public_clients_cache_v1';
+const CLIENTS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 24; // 24h
+
+function readClientsCache(): Client[] | null {
+  try {
+    const raw = localStorage.getItem(CLIENTS_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { ts: number; items: Client[] };
+    if (!parsed || !Array.isArray(parsed.items) || typeof parsed.ts !== 'number') return null;
+    if (Date.now() - parsed.ts > CLIENTS_CACHE_MAX_AGE_MS) return null;
+    // Minimal shape validation
+    const items = parsed.items.filter(
+      (c) => c && typeof c.name === 'string' && typeof c.logo === 'string'
+    );
+    return items.length > 0 ? items : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeClientsCache(items: Client[]) {
+  try {
+    localStorage.setItem(CLIENTS_CACHE_KEY, JSON.stringify({ ts: Date.now(), items }));
+  } catch {
+    // ignore storage failures (private mode, quota, etc.)
+  }
+}
 
 function getAdminSessionTokenOrThrow(): string {
   const token = localStorage.getItem('sessionToken');
@@ -268,6 +295,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // تحميل البيانات من Supabase عند بدء التطبيق
   useEffect(() => {
+    // Show cached clients immediately to avoid empty flash on first paint
+    const cachedClients = readClientsCache();
+    if (cachedClients && cachedClients.length > 0) {
+      setClients(cachedClients);
+      setData((prev) => ({
+        ...prev,
+        clients: {
+          ...prev.clients,
+          items: cachedClients,
+        },
+      }));
+    }
     loadDataFromSupabase();
   }, []);
 
@@ -396,37 +435,37 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         console.warn('site_data missing or unreadable; falling back to defaults', siteDataError);
       }
 
-      // تحميل المقالات - الأحدث أولاً
-      await reloadArticles();
+      const loadClients = async () => {
+        const { data: clientsData, error: clientsError } = await supabase
+          .from('clients')
+          .select('*')
+          .order('display_order', { ascending: true });
 
-      // تحميل آراء العملاء - الأحدث أولاً
-      await reloadTestimonials();
+        if (clientsError) {
+          console.error('Error loading clients:', clientsError);
+          return;
+        }
 
-      // تحميل العملاء
-      const { data: clientsData, error: clientsError } = await supabase
-        .from('clients')
-        .select('*')
-        .order('display_order', { ascending: true });
-
-      if (!clientsError && clientsData && clientsData.length > 0) {
-        const formattedClients: Client[] = clientsData.map((item: any) => ({
+        const formattedClients: Client[] = (clientsData ?? []).map((item: any) => ({
           name: item.name,
           logo: item.logo,
         }));
+
+        // Always update state (even when empty) so UI reflects the DB accurately
         setClients(formattedClients);
-        
-        // تحديث قسم العملاء
-        setData(prev => ({
+        writeClientsCache(formattedClients);
+
+        setData((prev) => ({
           ...prev,
           clients: {
             ...prev.clients,
             items: formattedClients,
           },
         }));
-      }
+      };
 
-      // تحميل الفيديوهات - الأحدث أولاً
-      await reloadVideos();
+      // Load everything in parallel so "clients" doesn't wait on articles/testimonials/videos
+      await Promise.allSettled([reloadArticles(), reloadTestimonials(), loadClients(), reloadVideos()]);
     } catch (error) {
       console.error('Error loading data from Supabase:', error);
     } finally {
