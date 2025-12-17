@@ -26,6 +26,13 @@ function isPermissionError(e: any): boolean {
   );
 }
 
+function isPgcryptoMissingError(e: any): boolean {
+  const code = typeof e?.code === 'string' ? e.code : '';
+  const message = typeof e?.message === 'string' ? e.message.toLowerCase() : '';
+  // 42883 = undefined_function (Postgres)
+  return code === '42883' && (message.includes('gen_random_bytes') || message.includes('pgcrypto'));
+}
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -78,6 +85,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (error) {
         const msg = typeof (error as any)?.message === 'string' ? (error as any).message : '';
+        if (isPgcryptoMissingError(error) || msg.includes('gen_random_bytes')) {
+          return {
+            success: false,
+            kind: 'unknown',
+            error:
+              'قاعدة البيانات لا تدعم توليد التوكنات (pgcrypto غير مفعّل). افتح Supabase > SQL Editor ونفّذ: CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;',
+          };
+        }
         if (msg.includes('invalid_credentials')) {
           return { success: false, kind: 'invalid_credentials' };
         }
