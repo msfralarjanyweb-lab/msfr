@@ -250,6 +250,14 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 const SITE_DATA_ID = '00000000-0000-0000-0000-000000000001';
 
+function getAdminSessionTokenOrThrow(): string {
+  const token = localStorage.getItem('sessionToken');
+  if (!token) {
+    throw new Error('Not authenticated (missing sessionToken)');
+  }
+  return token;
+}
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<SiteData>(defaultData);
   const [articles, setArticles] = useState<Article[]>(ARTICLES);
@@ -373,13 +381,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
         setData(mergedData);
       } else {
-        // إذا لم توجد بيانات، إنشاء سجل افتراضي
-        await supabase
-          .from('site_data')
-          .upsert({
-            id: SITE_DATA_ID,
-            data: defaultData,
-          });
+        // If the row doesn't exist (or read failed), don't auto-create from the public site.
+        // With RLS enabled, writes must happen via admin RPCs only.
+        console.warn('site_data missing or unreadable; falling back to defaults', siteDataError);
       }
 
       // تحميل المقالات - الأحدث أولاً
@@ -423,13 +427,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // حفظ بيانات الموقع في Supabase
   const saveSiteDataToSupabase = async (siteData: SiteData) => {
     try {
-      const { error } = await supabase
-        .from('site_data')
-        .upsert({
-          id: SITE_DATA_ID,
-          data: siteData,
-          updated_at: new Date().toISOString(),
-        });
+      const sessionToken = getAdminSessionTokenOrThrow();
+      const { error } = await supabase.rpc('admin_upsert_site_data', {
+        p_session_token: sessionToken,
+        p_id: SITE_DATA_ID,
+        p_data: siteData,
+      });
 
       if (error) {
         console.error('Error saving site data to Supabase:', error);
@@ -480,16 +483,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addArticle = async (article: Article) => {
     try {
-      const { error } = await supabase
-        .from('articles')
-        .insert({
-          title: article.title,
-          excerpt: article.excerpt,
-          content: article.content || '',
-          date: article.date,
-          category: article.category,
-          image: article.image,
-        });
+      const sessionToken = getAdminSessionTokenOrThrow();
+      const { error } = await supabase.rpc('admin_insert_article', {
+        p_session_token: sessionToken,
+        p_title: article.title,
+        p_excerpt: article.excerpt,
+        p_content: article.content || '',
+        p_date: article.date,
+        p_category: article.category,
+        p_image: article.image,
+      });
 
       if (error) throw error;
 
@@ -503,6 +506,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateArticle = async (index: number, article: Article) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID المقال من قاعدة البيانات
       const { data: articlesData } = await supabase
         .from('articles')
@@ -515,17 +519,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const articleId = articlesData[index].id;
 
-      const { error } = await supabase
-        .from('articles')
-        .update({
-          title: article.title,
-          excerpt: article.excerpt,
-          content: article.content || '',
-          date: article.date,
-          category: article.category,
-          image: article.image,
-        })
-        .eq('id', articleId);
+      const { error } = await supabase.rpc('admin_update_article', {
+        p_session_token: sessionToken,
+        p_id: articleId,
+        p_title: article.title,
+        p_excerpt: article.excerpt,
+        p_content: article.content || '',
+        p_date: article.date,
+        p_category: article.category,
+        p_image: article.image,
+      });
 
       if (error) throw error;
 
@@ -539,6 +542,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteArticle = async (index: number) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID المقال من قاعدة البيانات
       const { data: articlesData } = await supabase
         .from('articles')
@@ -551,10 +555,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const articleId = articlesData[index].id;
 
-      const { error } = await supabase
-        .from('articles')
-        .delete()
-        .eq('id', articleId);
+      const { error } = await supabase.rpc('admin_delete_article', {
+        p_session_token: sessionToken,
+        p_id: articleId,
+      });
 
       if (error) throw error;
 
@@ -568,15 +572,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addTestimonial = async (testimonial: Testimonial) => {
     try {
-      const { error } = await supabase
-        .from('testimonials')
-        .insert({
-          name: testimonial.name,
-          role: testimonial.role,
-          content: testimonial.content,
-          image: testimonial.image,
-          date: testimonial.date,
-        });
+      const sessionToken = getAdminSessionTokenOrThrow();
+      const { error } = await supabase.rpc('admin_insert_testimonial', {
+        p_session_token: sessionToken,
+        p_name: testimonial.name,
+        p_role: testimonial.role,
+        p_content: testimonial.content,
+        p_image: testimonial.image,
+        p_date: testimonial.date,
+      });
 
       if (error) throw error;
 
@@ -590,6 +594,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateTestimonial = async (index: number, testimonial: Testimonial) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID الرأي من قاعدة البيانات
       const { data: testimonialsData } = await supabase
         .from('testimonials')
@@ -602,16 +607,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const testimonialId = testimonialsData[index].id;
 
-      const { error } = await supabase
-        .from('testimonials')
-        .update({
-          name: testimonial.name,
-          role: testimonial.role,
-          content: testimonial.content,
-          image: testimonial.image,
-          date: testimonial.date,
-        })
-        .eq('id', testimonialId);
+      const { error } = await supabase.rpc('admin_update_testimonial', {
+        p_session_token: sessionToken,
+        p_id: testimonialId,
+        p_name: testimonial.name,
+        p_role: testimonial.role,
+        p_content: testimonial.content,
+        p_image: testimonial.image,
+        p_date: testimonial.date,
+      });
 
       if (error) throw error;
 
@@ -625,6 +629,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteTestimonial = async (index: number) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID الرأي من قاعدة البيانات
       const { data: testimonialsData } = await supabase
         .from('testimonials')
@@ -637,10 +642,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const testimonialId = testimonialsData[index].id;
 
-      const { error } = await supabase
-        .from('testimonials')
-        .delete()
-        .eq('id', testimonialId);
+      const { error } = await supabase.rpc('admin_delete_testimonial', {
+        p_session_token: sessionToken,
+        p_id: testimonialId,
+      });
 
       if (error) throw error;
 
@@ -654,13 +659,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addClient = async (client: Client) => {
     try {
-      const { error } = await supabase
-        .from('clients')
-        .insert({
-          name: client.name,
-          logo: client.logo,
-          display_order: clients.length,
-        });
+      const sessionToken = getAdminSessionTokenOrThrow();
+      const { error } = await supabase.rpc('admin_insert_client', {
+        p_session_token: sessionToken,
+        p_name: client.name,
+        p_logo: client.logo,
+        p_display_order: clients.length,
+      });
 
       if (error) throw error;
 
@@ -682,6 +687,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateClient = async (index: number, client: Client) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID العميل من قاعدة البيانات
       const { data: clientsData } = await supabase
         .from('clients')
@@ -694,13 +700,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const clientId = clientsData[index].id;
 
-      const { error } = await supabase
-        .from('clients')
-        .update({
-          name: client.name,
-          logo: client.logo,
-        })
-        .eq('id', clientId);
+      const { error } = await supabase.rpc('admin_update_client', {
+        p_session_token: sessionToken,
+        p_id: clientId,
+        p_name: client.name,
+        p_logo: client.logo,
+      });
 
       if (error) throw error;
 
@@ -723,6 +728,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteClient = async (index: number) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID العميل من قاعدة البيانات
       const { data: clientsData } = await supabase
         .from('clients')
@@ -735,10 +741,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const clientId = clientsData[index].id;
 
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', clientId);
+      const { error } = await supabase.rpc('admin_delete_client', {
+        p_session_token: sessionToken,
+        p_id: clientId,
+      });
 
       if (error) throw error;
 
@@ -760,14 +766,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addVideo = async (video: VideoItem) => {
     try {
-      const { error } = await supabase
-        .from('videos')
-        .insert({
-          title: video.title,
-          thumbnail: video.thumbnail,
-          duration: video.duration,
-          url: video.url,
-        });
+      const sessionToken = getAdminSessionTokenOrThrow();
+      const { error } = await supabase.rpc('admin_insert_video', {
+        p_session_token: sessionToken,
+        p_title: video.title,
+        p_thumbnail: video.thumbnail,
+        p_duration: video.duration,
+        p_url: video.url,
+      });
 
       if (error) throw error;
 
@@ -781,6 +787,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateVideo = async (index: number, video: VideoItem) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // الحصول على ID الفيديو من قاعدة البيانات
       const { data: videosData } = await supabase
         .from('videos')
@@ -793,15 +800,14 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const videoId = videosData[index].id;
 
-      const { error } = await supabase
-        .from('videos')
-        .update({
-          title: video.title,
-          thumbnail: video.thumbnail,
-          duration: video.duration,
-          url: video.url,
-        })
-        .eq('id', videoId);
+      const { error } = await supabase.rpc('admin_update_video', {
+        p_session_token: sessionToken,
+        p_id: videoId,
+        p_title: video.title,
+        p_thumbnail: video.thumbnail,
+        p_duration: video.duration,
+        p_url: video.url,
+      });
 
       if (error) throw error;
 
@@ -815,6 +821,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteVideo = async (index: number) => {
     try {
+      const sessionToken = getAdminSessionTokenOrThrow();
       // التحقق من أن الفهرس صحيح
       if (index < 0 || index >= videos.length) {
         throw new Error('Video index out of range');
@@ -845,11 +852,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // استخدام أول نتيجة (يجب أن تكون فريدة)
       const videoId = videosData[0].id;
 
-      // حذف الفيديو من قاعدة البيانات
-      const { error: deleteError } = await supabase
-        .from('videos')
-        .delete()
-        .eq('id', videoId);
+      // حذف الفيديو من قاعدة البيانات (via admin RPC)
+      const { error: deleteError } = await supabase.rpc('admin_delete_video', {
+        p_session_token: sessionToken,
+        p_id: videoId,
+      });
 
       if (deleteError) {
         throw deleteError;
