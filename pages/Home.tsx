@@ -328,7 +328,7 @@ const Home: React.FC = () => {
                   slidesPerView={1}
                   breakpoints={{
                     0: {
-                      slidesPerView: 1.2,
+                      slidesPerView: 1,
                       spaceBetween: 16,
                     },
                     640: {
