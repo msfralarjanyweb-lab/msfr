@@ -72,6 +72,8 @@ html {
 
 .swiper-button-prev-testimonials,
 .swiper-button-next-testimonials,
+.swiper-button-prev-clients,
+.swiper-button-next-clients,
 .swiper-button-prev-videos,
 .swiper-button-next-videos,
 .swiper-button-prev-articles,
@@ -85,6 +87,8 @@ html {
 
 .swiper-button-prev-testimonials::after,
 .swiper-button-next-testimonials::after,
+.swiper-button-prev-clients::after,
+.swiper-button-next-clients::after,
 .swiper-button-prev-videos::after,
 .swiper-button-next-videos::after,
 .swiper-button-prev-articles::after,
@@ -95,6 +99,8 @@ html {
 /* Enhanced hover and active states */
 .swiper-button-prev-testimonials:hover,
 .swiper-button-next-testimonials:hover,
+.swiper-button-prev-clients:hover,
+.swiper-button-next-clients:hover,
 .swiper-button-prev-videos:hover,
 .swiper-button-next-videos:hover,
 .swiper-button-prev-articles:hover,
@@ -105,6 +111,8 @@ html {
 
 .swiper-button-prev-testimonials:active,
 .swiper-button-next-testimonials:active,
+.swiper-button-prev-clients:active,
+.swiper-button-next-clients:active,
 .swiper-button-prev-videos:active,
 .swiper-button-next-videos:active,
 .swiper-button-prev-articles:active,
@@ -116,6 +124,8 @@ html {
 @media (max-width: 640px) {
   .swiper-button-prev-testimonials,
   .swiper-button-next-testimonials,
+  .swiper-button-prev-clients,
+  .swiper-button-next-clients,
   .swiper-button-prev-videos,
   .swiper-button-next-videos,
   .swiper-button-prev-articles,

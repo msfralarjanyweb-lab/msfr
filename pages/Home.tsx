@@ -304,7 +304,97 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* Divider: Services → Stats */}
+      {/* Divider: Services → Clients */}
+      <section className="py-6 bg-light relative w-full">
+        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
+      </section>
+
+      {/* Clients Section */}
+      {visibility.clients === true && (
+        <section id="clients" className="py-12 bg-light w-full">
+          <div className="container mx-auto px-4 md:px-6">
+            <SectionHeading 
+              subtitle={safeData.clients.subtitle}
+              title={safeData.clients.title}
+              description={safeData.clients.description}
+            />
+            
+            {clients && clients.length > 0 ? (
+              <div className="mt-16">
+                <Swiper
+                  modules={[Navigation]}
+                  spaceBetween={24}
+                  slidesPerView={1}
+                  breakpoints={{
+                    0: {
+                      slidesPerView: 1.2,
+                      spaceBetween: 16,
+                    },
+                    480: {
+                      slidesPerView: 2,
+                      spaceBetween: 16,
+                    },
+                    768: {
+                      slidesPerView: 3,
+                      spaceBetween: 20,
+                    },
+                    1024: {
+                      slidesPerView: 4,
+                      spaceBetween: 24,
+                    },
+                    1280: {
+                      slidesPerView: 5,
+                      spaceBetween: 24,
+                    },
+                  }}
+                  navigation={{
+                    nextEl: '.swiper-button-prev-clients',
+                    prevEl: '.swiper-button-next-clients',
+                  }}
+                  className="clients-swiper"
+                >
+                  {clients.map((client, index) => (
+                    <SwiperSlide key={index}>
+                      <div
+                        className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center border border-gray-100 hover:border-primary/30 group h-full"
+                      >
+                        <div className="w-full h-32 flex items-center justify-center mb-4 overflow-hidden">
+                          <img
+                            src={client.logo}
+                            alt={client.name}
+                            className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/images/service.png';
+                            }}
+                          />
+                        </div>
+                        <h3 className="text-lg font-bold text-secondary text-center group-hover:text-primary transition-colors">
+                          {client.name}
+                        </h3>
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+
+                <div className="flex items-center justify-center gap-3 md:gap-4 mt-8">
+                  <div className="swiper-button-next-clients cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-secondary transition-all duration-300 shadow-md hover:shadow-lg active:scale-95">
+                    <ArrowRight className="w-5 h-5 md:w-6 md:h-6" />
+                  </div>
+                  <div className="swiper-button-prev-clients cursor-pointer w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary text-white flex items-center justify-center hover:bg-secondary transition-all duration-300 shadow-md hover:shadow-lg active:scale-95">
+                    <ArrowRight className="w-5 h-5 md:w-6 md:h-6 rotate-180" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 text-lg">لا يوجد عملاء متاحون حالياً</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Divider: Clients → Stats */}
       <section className="py-0 bg-secondary relative w-full">
         <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/30 via-primary/30 to-transparent"></div>
       </section>
@@ -505,57 +595,8 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* Divider: Testimonials → Clients */}
-      <section className="py-6 bg-gradient-to-b from-white to-light relative w-full">
-        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
-      </section>
-
-      {/* Clients Section */}
-      {visibility.clients === true && (
-        <section id="clients" className="py-12 bg-light w-full">
-          <div className="container mx-auto px-4 md:px-6">
-            <SectionHeading 
-              subtitle={safeData.clients.subtitle}
-              title={safeData.clients.title}
-              description={safeData.clients.description}
-            />
-            
-            {clients && clients.length > 0 ? (
-              <div className="mt-16">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
-                  {clients.map((client, index) => (
-                    <div
-                      key={index}
-                      className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center border border-gray-100 hover:border-primary/30 group"
-                    >
-                      <div className="w-full h-32 flex items-center justify-center mb-4 overflow-hidden">
-                        <img
-                          src={client.logo}
-                          alt={client.name}
-                          className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-110"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/images/service.png';
-                          }}
-                        />
-                      </div>
-                      <h3 className="text-lg font-bold text-secondary text-center group-hover:text-primary transition-colors">
-                        {client.name}
-                      </h3>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500 text-lg">لا يوجد عملاء متاحون حالياً</p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Divider: Clients → Videos */}
-      <section className="py-6 bg-gradient-to-b from-light to-white relative w-full">
+      {/* Divider: Testimonials → Videos */}
+      <section className="py-6 bg-gradient-to-b from-white to-white relative w-full">
         <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
       </section>
 
