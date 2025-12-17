@@ -44,7 +44,9 @@ const Admin: React.FC = () => {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [isAddingArticle, setIsAddingArticle] = useState(false);
   const [editingArticle, setEditingArticle] = useState<number | null>(null);
+  const [isAddingTestimonial, setIsAddingTestimonial] = useState(false);
   const [editingTestimonial, setEditingTestimonial] = useState<number | null>(null);
   const [editingClient, setEditingClient] = useState<number | null>(null);
   const [isAddingClient, setIsAddingClient] = useState(false);
@@ -264,6 +266,7 @@ const Admin: React.FC = () => {
         image: '',
       });
       setEditingArticle(null);
+      setIsAddingArticle(false);
       showNotification(isEditing ? 'تم تحديث المقال بنجاح' : 'تم إضافة مقال بنجاح');
     } catch (error) {
       console.error('Error saving article:', error);
@@ -294,6 +297,7 @@ const Admin: React.FC = () => {
         date: getTodayDate(),
       });
       setEditingTestimonial(null);
+      setIsAddingTestimonial(false);
       showNotification(isEditing ? 'تم تحديث رأي العميل بنجاح' : 'تم إضافة رأي عميل جديد بنجاح');
     } catch (error) {
       console.error('Error saving testimonial:', error);
@@ -370,6 +374,57 @@ const Admin: React.FC = () => {
       showNotification('حدث خطأ أثناء حفظ الفيديو. يرجى المحاولة مرة أخرى.', 'error');
     }
   };
+
+  const handleCancelControlPanel = useCallback(() => {
+    setEditingSection(null);
+
+    setEditingArticle(null);
+    setIsAddingArticle(false);
+    setNewArticle({
+      title: '',
+      excerpt: '',
+      content: '',
+      date: getTodayDate(),
+      category: 'أخبار',
+      image: '',
+    });
+
+    setEditingTestimonial(null);
+    setIsAddingTestimonial(false);
+    setNewTestimonial({
+      name: '',
+      role: '',
+      content: '',
+      image: '',
+      date: getTodayDate(),
+    });
+
+    setEditingClient(null);
+    setIsAddingClient(false);
+    setNewClient({
+      name: '',
+      logo: '',
+    });
+
+    setEditingVideo(null);
+    setIsAddingVideo(false);
+    setNewVideo({
+      title: '',
+      thumbnail: '',
+      url: '',
+    });
+
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setPasswordError('');
+    setPasswordSuccess(false);
+    setIsChangingPassword(false);
+
+    setActiveTab(null);
+  }, []);
 
   return (
     <>
@@ -594,10 +649,7 @@ const Admin: React.FC = () => {
                       sectionId={section.id}
                       sectionData={sectionData}
                       onSave={(formData) => handleSaveSection(section.id, formData, section.name)}
-                      onCancel={() => {
-                        setEditingSection(null);
-                        setActiveTab(null);
-                      }}
+                      onCancel={handleCancelControlPanel}
                     />
                   )}
                 </div>
@@ -608,10 +660,7 @@ const Admin: React.FC = () => {
             <div className="flex justify-center pt-2">
               <button
                 type="button"
-                onClick={() => {
-                  setEditingSection(null);
-                  setActiveTab(null);
-                }}
+                onClick={handleCancelControlPanel}
                 className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
               >
                 <X size={20} />
@@ -630,9 +679,11 @@ const Admin: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setEditingArticle(null);
+                  setIsAddingArticle(true);
                   setNewArticle({
                     title: '',
                     excerpt: '',
+                    content: '',
                     date: getTodayDate(),
                     category: 'أخبار',
                     image: '',
@@ -646,7 +697,7 @@ const Admin: React.FC = () => {
             </div>
 
             {/* Article Form */}
-            {(editingArticle !== null || Object.values(newArticle).some(v => v !== '')) && (
+            {(isAddingArticle || editingArticle !== null) && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-secondary mb-6">
                   {editingArticle !== null ? 'تعديل المقال' : 'مقال جديد'}
@@ -659,9 +710,11 @@ const Admin: React.FC = () => {
                   onSave={handleSaveArticle}
                   onCancel={() => {
                     setEditingArticle(null);
+                    setIsAddingArticle(false);
                     setNewArticle({
                       title: '',
                       excerpt: '',
+                      content: '',
                       date: getTodayDate(),
                       category: 'أخبار',
                       image: '',
@@ -704,6 +757,7 @@ const Admin: React.FC = () => {
                             type="button"
                             onClick={() => {
                               setEditingArticle(index);
+                              setIsAddingArticle(false);
                               setNewArticle({ ...articles[index] });
                             }}
                             className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
@@ -735,6 +789,18 @@ const Admin: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Close tab */}
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={handleCancelControlPanel}
+                className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+              >
+                <X size={20} />
+                <span>إلغاء</span>
+              </button>
             </div>
           </div>
           )}
@@ -854,6 +920,18 @@ const Admin: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Close tab */}
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={handleCancelControlPanel}
+                className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+              >
+                <X size={20} />
+                <span>إلغاء</span>
+              </button>
+            </div>
           </div>
           )}
 
@@ -962,6 +1040,18 @@ const Admin: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Close tab */}
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={handleCancelControlPanel}
+                className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+              >
+                <X size={20} />
+                <span>إلغاء</span>
+              </button>
+            </div>
           </div>
           )}
 
@@ -974,6 +1064,7 @@ const Admin: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setEditingTestimonial(null);
+                  setIsAddingTestimonial(true);
                   setNewTestimonial({
                     name: '',
                     role: '',
@@ -990,7 +1081,7 @@ const Admin: React.FC = () => {
             </div>
 
             {/* Testimonial Form */}
-            {(editingTestimonial !== null || Object.values(newTestimonial).some(v => v !== '')) && (
+            {(isAddingTestimonial || editingTestimonial !== null) && (
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h3 className="text-xl font-bold text-secondary mb-6">
                   {editingTestimonial !== null ? 'تعديل رأي العميل' : 'رأي عميل جديد'}
@@ -1003,6 +1094,7 @@ const Admin: React.FC = () => {
                   onSave={handleSaveTestimonial}
                   onCancel={() => {
                     setEditingTestimonial(null);
+                    setIsAddingTestimonial(false);
                     setNewTestimonial({
                       name: '',
                       role: '',
@@ -1046,6 +1138,7 @@ const Admin: React.FC = () => {
                             type="button"
                             onClick={() => {
                               setEditingTestimonial(index);
+                              setIsAddingTestimonial(false);
                               setNewTestimonial({ ...testimonials[index] });
                             }}
                             className="w-full sm:w-auto px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2"
@@ -1077,6 +1170,18 @@ const Admin: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Close tab */}
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={handleCancelControlPanel}
+                className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
+              >
+                <X size={20} />
+                <span>إلغاء</span>
+              </button>
             </div>
           </div>
           )}
@@ -1230,15 +1335,7 @@ const Admin: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setPasswordData({
-                        currentPassword: '',
-                        newPassword: '',
-                        confirmPassword: '',
-                      });
-                      setPasswordError('');
-                      setPasswordSuccess(false);
-                    }}
+                    onClick={handleCancelControlPanel}
                     className="w-full sm:w-auto px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-colors flex items-center justify-center gap-2"
                   >
                     <X size={20} />
