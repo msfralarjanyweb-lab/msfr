@@ -594,7 +594,10 @@ const Admin: React.FC = () => {
                       sectionId={section.id}
                       sectionData={sectionData}
                       onSave={(formData) => handleSaveSection(section.id, formData, section.name)}
-                      onCancel={() => setEditingSection(null)}
+                      onCancel={() => {
+                        setEditingSection(null);
+                        setActiveTab(null);
+                      }}
                     />
                   )}
                 </div>
