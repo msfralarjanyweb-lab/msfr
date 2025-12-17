@@ -330,9 +330,9 @@ const Home: React.FC = () => {
                       slidesPerView: 1.2,
                       spaceBetween: 16,
                     },
-                    480: {
+                    640: {
                       slidesPerView: 2,
-                      spaceBetween: 16,
+                      spaceBetween: 20,
                     },
                     768: {
                       slidesPerView: 3,
