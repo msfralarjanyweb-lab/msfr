@@ -15,6 +15,7 @@ const Home: React.FC = () => {
   const data = contextData?.data;
   const articles = contextData?.articles || [];
   const videos = contextData?.videos || [];
+  const clients = contextData?.clients || [];
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   const toggleFaq = (index: number) => {
@@ -145,19 +146,19 @@ const Home: React.FC = () => {
                   alt="مشروع إنشائي قيد التنفيذ مع رافعة برجية" 
                   className="w-full h-full object-cover rounded-bl-[100px] shadow-2xl"
                 />
-                <div className="absolute bottom-8 right-8 bg-white p-6 lg:p-8 shadow-2xl max-w-sm hidden lg:block border-r-4 border-primary rounded-lg backdrop-blur-sm">
-                  <div className="text-right space-y-3">
-                    <span className="inline-block uppercase tracking-wider text-xs font-bold text-primary mb-2">
+                <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-xs md:bottom-8 md:right-8 md:max-w-sm bg-white/95 p-4 sm:p-6 lg:p-8 shadow-2xl border-r-4 border-primary rounded-lg backdrop-blur-sm">
+                  <div className="text-right space-y-2 sm:space-y-3">
+                    <span className="inline-block uppercase tracking-wider text-xs font-bold text-primary mb-1 sm:mb-2">
                       المحامي
                     </span>
-                    <h3 className="text-2xl lg:text-3xl font-serif font-bold text-secondary leading-tight">
+                    <h3 className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-secondary leading-tight">
                       {safeData.hero.lawyerName}
                     </h3>
-                    <div className="h-1 w-16 bg-primary ml-auto mr-0"></div>
-                    <p className="text-sm text-gray-600 leading-relaxed pt-2">
+                    <div className="h-1 w-12 sm:w-16 bg-primary ml-auto mr-0"></div>
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed pt-1 sm:pt-2">
                       {safeData.hero.lawyerTitle1}
                     </p>
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                       {safeData.hero.lawyerTitle2}
                     </p>
                   </div>
@@ -211,7 +212,7 @@ const Home: React.FC = () => {
                       <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 text-primary">
                         <HardHat size={28} />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <h3 className="text-xl font-bold text-primary mb-3">{feature.title}</h3>
                         <p className="text-gray-200 text-base leading-relaxed">{feature.description}</p>
                       </div>
@@ -423,8 +424,8 @@ const Home: React.FC = () => {
                   {safeData.stats.description}
                 </p>
               </div>
-              <div className="hidden md:block h-full relative min-h-[600px] lg:min-h-[700px] order-1 md:order-2 overflow-hidden">
-                <div className="absolute inset-0 -m-2 md:-m-4 lg:-m-6">
+              <div className="relative order-1 md:order-2 h-56 sm:h-72 md:h-full md:min-h-[600px] lg:min-h-[700px] overflow-hidden">
+                <div className="absolute inset-0 md:-m-2 lg:-m-4 xl:-m-6">
                   <img 
                     src={safeData.stats.image} 
                     alt="أفق عمراني ومشاريع إنشائية في المملكة" 
@@ -786,25 +787,25 @@ const Home: React.FC = () => {
 
       {/* Contact Section */}
       {visibility.contact === true && (
-        <section id="contact" className="py-12 bg-gradient-to-br from-light via-white to-light w-full">
-          <div className="container mx-auto px-4 md:px-6">
+        <section id="contact" className="py-12 bg-gradient-to-br from-light via-white to-light w-full overflow-x-hidden">
+          <div className="container mx-auto px-4 md:px-6 w-full max-w-full">
             <SectionHeading 
               subtitle={safeData.contact.subtitle}
               title={safeData.contact.title}
               description={safeData.contact.description}
             />
             
-            <div className="max-w-4xl mx-auto mt-16">
+            <div className="max-w-4xl mx-auto mt-16 w-full">
               {/* Contact Info Cards */}
-              <div className="grid md:grid-cols-2 gap-6 mb-12">
-                <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary">
-                  <div className="flex items-start gap-5">
-                    <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="text-primary" size={32} />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-12 w-full">
+                <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary w-full min-w-0 box-border">
+                  <div className="flex items-start gap-3 sm:gap-5 w-full min-w-0">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <MapPin className="text-primary w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-secondary mb-3">المكتب الرئيسي</h3>
-                      <p className="text-gray-700 text-base leading-relaxed">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold text-secondary mb-3">المكتب الرئيسي</h3>
+                      <p className="text-gray-700 text-sm sm:text-base leading-relaxed break-words">
                         {safeData.contact.address}
                       </p>
                       <a
@@ -820,13 +821,13 @@ const Home: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary">
-                  <div className="flex items-start gap-5">
-                    <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <Phone className="text-primary" size={32} />
+                <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary w-full min-w-0 box-border">
+                  <div className="flex items-start gap-3 sm:gap-5 w-full min-w-0">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <Phone className="text-primary w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-secondary mb-3">الهاتف</h3>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold text-secondary mb-3">الهاتف</h3>
                       <a href={`tel:${safeData.contact.phone}`} className="text-gray-700 text-lg font-medium hover:text-primary transition-colors" dir="ltr">
                         {safeData.contact.phone}
                       </a>
@@ -845,13 +846,13 @@ const Home: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary">
-                  <div className="flex items-start gap-5">
-                    <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <Mail className="text-primary" size={32} />
+                <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary w-full min-w-0 box-border">
+                  <div className="flex items-start gap-3 sm:gap-5 w-full min-w-0">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <Mail className="text-primary w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-secondary mb-3">البريد الإلكتروني</h3>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold text-secondary mb-3">البريد الإلكتروني</h3>
                       <a href={`mailto:${safeData.contact.email}`} className="text-gray-700 text-base hover:text-primary transition-colors break-all">
                         {safeData.contact.email}
                       </a>
@@ -859,13 +860,13 @@ const Home: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary">
-                  <div className="flex items-start gap-5">
-                    <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <FileText className="text-primary" size={32} />
+                <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary w-full min-w-0 box-border">
+                  <div className="flex items-start gap-3 sm:gap-5 w-full min-w-0">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <FileText className="text-primary w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-secondary mb-3">السجل التجاري</h3>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold text-secondary mb-3">السجل التجاري</h3>
                       <p className="text-gray-700 text-lg font-medium" dir="ltr">
                         {safeData.contact.commercialRegistration}
                       </p>
@@ -873,13 +874,13 @@ const Home: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary">
-                  <div className="flex items-start gap-5">
-                    <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="text-primary" size={32} />
+                <div className="bg-white p-5 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary w-full min-w-0 box-border">
+                  <div className="flex items-start gap-3 sm:gap-5 w-full min-w-0">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <MessageCircle className="text-primary w-6 h-6 sm:w-8 sm:h-8" />
                     </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-secondary mb-4">وسائل التواصل</h3>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg sm:text-xl font-bold text-secondary mb-4">وسائل التواصل</h3>
                       <div className="flex gap-3 flex-wrap">
                         <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="w-12 h-12 bg-[#25D366] text-white flex items-center justify-center rounded-lg hover:bg-[#20BA5A] transition-all duration-300 hover:scale-110 shadow-md">
                           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -915,12 +916,12 @@ const Home: React.FC = () => {
 
               {/* WhatsApp Button - Large and Prominent */}
               {/* Map */}
-              <div className="mt-8">
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                  <div className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-gray-100">
-                    <div>
-                      <h3 className="text-2xl font-bold text-secondary">موقع المكتب على الخريطة</h3>
-                      <p className="text-gray-600 mt-2">{safeData.contact.address}</p>
+              <div className="mt-8 w-full min-w-0">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full">
+                  <div className="p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-gray-100">
+                    <div className="min-w-0 flex-1 w-full">
+                      <h3 className="text-xl sm:text-2xl font-bold text-secondary">موقع المكتب على الخريطة</h3>
+                      <p className="text-gray-600 mt-2 text-sm sm:text-base break-words">{safeData.contact.address}</p>
                     </div>
                     <a
                       href={mapsAppHref}

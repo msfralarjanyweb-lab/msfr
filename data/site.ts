@@ -195,7 +195,7 @@ export const siteData: SiteData = {
     description: '',
     address: 'مخرج 17 – تقاطع الدائري الشرقي مع طريق المدينة المنورة – الرياض',
     phone: '+966553553042',
-    email: 'info@al-arjani-law.com',
+    email: 'mesfer947@gmail.com',
     commercialRegistration: '7051123235',
   },
   clients: {
