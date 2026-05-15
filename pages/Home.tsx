@@ -66,12 +66,7 @@ const Home: React.FC = () => {
     ? safeData.features.items
     : FEATURES;
 
-  const heroDescriptionParts = (safeData.hero?.description || '')
-    .split(/(?<=[.،])\s+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-  const heroDescLine1 = heroDescriptionParts[0] || safeData.hero?.description || '';
-  const heroDescLine2 = heroDescriptionParts.slice(1).join(' ');
+  const keepPhraseTogether = (text: string) => text.replace(/\s+/g, '\u00A0');
 
   const handleNavClick = (href: string) => {
     const element = document.querySelector(href);
@@ -141,10 +136,13 @@ const Home: React.FC = () => {
                 className="transition-all duration-700 ease-out transform opacity-100 translate-y-0"
                 style={{ transitionDelay: '0ms' }}
               >
-                <h1 className="text-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tighter break-words hyphens-auto text-balance">
-                  <span className="block">{safeData.hero.badge}</span>
-                  <span className="block">
-                    {safeData.hero.title}{' '}
+                <h1 className="text-white text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-snug sm:leading-tight">
+                  <span className="block max-md:whitespace-nowrap md:whitespace-normal">
+                    {keepPhraseTogether(safeData.hero.badge)}
+                  </span>
+                  <span className="block max-md:whitespace-nowrap md:whitespace-normal">
+                    {keepPhraseTogether(safeData.hero.title)}
+                    {'\u00A0'}
                     <span className="text-primary">{safeData.hero.titleHighlight}</span>
                   </span>
                 </h1>
@@ -154,9 +152,8 @@ const Home: React.FC = () => {
                 className="transition-all duration-700 ease-out transform opacity-100 translate-y-0"
                 style={{ transitionDelay: '200ms' }}
               >
-                <p className="whitespace-pre-line text-gray-200 text-xl md:text-2xl font-normal leading-relaxed mt-4 break-words hyphens-auto max-w-4xl">
-                  <span className="block">{heroDescLine1}</span>
-                  {heroDescLine2 ? <span className="block">{heroDescLine2}</span> : null}
+                <p className="text-gray-200 text-base sm:text-xl md:text-2xl font-normal leading-relaxed mt-4 max-w-4xl">
+                  {safeData.hero.description}
                 </p>
               </div>
 
