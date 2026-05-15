@@ -55,21 +55,25 @@ const Header: React.FC = () => {
   return (
     <header className="fixed w-full bg-white/95 backdrop-blur-sm z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="flex justify-between items-center h-20 md:h-24">
+        <div className="flex justify-between items-center h-[4.75rem] sm:h-20 md:h-24">
           <a
             href="#home"
             onClick={(e) => {
               e.preventDefault();
               handleNavClick('#home');
             }}
-            className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 md:gap-3"
+            className="flex items-center gap-3 sm:gap-3.5 min-w-0 flex-1 lg:flex-initial pr-2 min-h-[61px]"
           >
-            <img src="/images/logo.png" alt="شعار شركة مسفر محمد العرجاني" className="h-10 w-auto sm:h-12 md:h-16 lg:h-20" />
-            <div className="block text-right">
-              <h1 className="text-xs sm:text-sm md:text-base lg:text-xl font-bold text-secondary leading-tight">
+            <img
+              src="/images/logo.png"
+              alt="شعار شركة مسفر محمد العرجاني"
+              className="h-14 w-auto sm:h-[3.75rem] md:h-16 lg:h-20 flex-shrink-0 object-contain"
+            />
+            <div className="block text-right font-brand min-w-0 leading-tight">
+              <h1 className="text-sm sm:text-base md:text-lg lg:text-xl font-extrabold text-secondary leading-snug">
                 شركة مسفر محمد العرجاني
               </h1>
-              <span className="text-[10px] sm:text-xs md:text-sm text-primary font-medium tracking-wide">
+              <span className="block text-xs sm:text-sm md:text-base text-primary font-bold leading-snug mt-0.5">
                 للمحاماة والاستشارات القانونية
               </span>
             </div>
@@ -108,7 +112,7 @@ const Header: React.FC = () => {
       </div>
 
       {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 absolute w-full left-0 top-20 shadow-lg p-4">
+        <div className="lg:hidden bg-white border-t border-gray-100 absolute w-full left-0 top-[4.75rem] sm:top-20 shadow-lg p-4">
           <nav className="flex flex-col space-y-4">
             {NAV_ITEMS.map((item) => (
               <a

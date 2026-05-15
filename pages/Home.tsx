@@ -66,6 +66,13 @@ const Home: React.FC = () => {
     ? safeData.features.items
     : FEATURES;
 
+  const heroDescriptionParts = (safeData.hero?.description || '')
+    .split(/(?<=[.،])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const heroDescLine1 = heroDescriptionParts[0] || safeData.hero?.description || '';
+  const heroDescLine2 = heroDescriptionParts.slice(1).join(' ');
+
   const handleNavClick = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
@@ -114,55 +121,67 @@ const Home: React.FC = () => {
     <>
       {/* Hero Section */}
       {visibility.hero === true && (
-        <section id="home" className="relative pt-20 flex items-center min-h-[90vh] bg-light overflow-hidden">
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              
-              {/* Text Content */}
-              <div className="space-y-8 md:pl-10 order-2 md:order-1 fade-in-up py-10 md:py-0">
-                <span className="text-primary font-bold tracking-widest text-base uppercase">{safeData.hero.badge}</span>
-                <h1 className="text-4xl md:text-6xl font-bold text-secondary leading-tight">
-                  {safeData.hero.title} <br />
-                  <span className="text-primary">{safeData.hero.titleHighlight}</span>
+        <section id="home" className="relative flex items-center min-h-[90vh] overflow-hidden pt-20">
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <img src="/images/service.png" alt="" className="w-full h-full object-cover opacity-20" aria-hidden="true" />
+          </div>
+          <div className="absolute inset-0 z-[1]">
+            <img
+              src={safeData.hero.image}
+              alt=""
+              className="w-full h-full object-cover opacity-60"
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-secondary/60 bg-gradient-to-l from-secondary/75 via-secondary/50 to-secondary/40" />
+          </div>
+
+          <div className="relative z-10 flex w-full justify-center px-6 sm:px-10 py-16 md:py-24 min-h-[calc(90vh-5rem)] items-center">
+            <div className="max-w-[1536px] w-full">
+              <div
+                className="transition-all duration-700 ease-out transform opacity-100 translate-y-0"
+                style={{ transitionDelay: '0ms' }}
+              >
+                <h1 className="text-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tighter break-words hyphens-auto text-balance">
+                  <span className="block">{safeData.hero.badge}</span>
+                  <span className="block">
+                    {safeData.hero.title}{' '}
+                    <span className="text-primary">{safeData.hero.titleHighlight}</span>
+                  </span>
                 </h1>
-                <p className="text-gray-600 text-xl leading-relaxed max-w-lg font-medium">
-                  {safeData.hero.description}
-                </p>
-                <div className="flex flex-wrap gap-4 pt-4">
-                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                    <Button className="text-lg px-10 py-4">{safeData.hero.button1Text}</Button>
-                  </a>
-                  <a href="#about" onClick={(e) => { e.preventDefault(); handleNavClick('#about'); }}>
-                    <Button variant="outline" className="text-lg px-10 py-4">{safeData.hero.button2Text}</Button>
-                  </a>
-                </div>
               </div>
 
-              {/* Hero Image */}
-              <div className="relative order-1 md:order-2 h-full min-h-[400px] md:min-h-[600px]">
-                <div className="absolute inset-0 bg-primary-100 rounded-bl-[100px] -z-10 transform translate-x-6 translate-y-6"></div>
-                <img 
-                  src={safeData.hero.image} 
-                  alt="مشروع إنشائي قيد التنفيذ مع رافعة برجية" 
-                  className="w-full h-full object-cover rounded-bl-[100px] shadow-2xl"
-                />
-                <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-xs md:bottom-8 md:right-8 md:max-w-sm bg-white/95 p-4 sm:p-6 lg:p-8 shadow-2xl border-r-4 border-primary rounded-lg backdrop-blur-sm">
-                  <div className="text-right space-y-2 sm:space-y-3">
-                    <span className="inline-block uppercase tracking-wider text-xs font-bold text-primary mb-1 sm:mb-2">
-                      المحامي
-                    </span>
-                    <h3 className="text-lg sm:text-2xl lg:text-3xl font-serif font-bold text-secondary leading-tight">
-                      {safeData.hero.lawyerName}
-                    </h3>
-                    <div className="h-1 w-12 sm:w-16 bg-primary ml-auto mr-0"></div>
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed pt-1 sm:pt-2">
-                      {safeData.hero.lawyerTitle1}
-                    </p>
-                    <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                      {safeData.hero.lawyerTitle2}
-                    </p>
-                  </div>
-                </div>
+              <div
+                className="transition-all duration-700 ease-out transform opacity-100 translate-y-0"
+                style={{ transitionDelay: '200ms' }}
+              >
+                <p className="whitespace-pre-line text-gray-200 text-xl md:text-2xl font-normal leading-relaxed mt-4 break-words hyphens-auto max-w-4xl">
+                  <span className="block">{heroDescLine1}</span>
+                  {heroDescLine2 ? <span className="block">{heroDescLine2}</span> : null}
+                </p>
+              </div>
+
+              <div
+                className="flex flex-col sm:flex-row gap-4 mt-8 w-full sm:w-auto transition-all duration-700 ease-out transform opacity-100 translate-y-0"
+                style={{ transitionDelay: '400ms' }}
+              >
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-12 px-8 text-lg md:text-xl font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-600"
+                >
+                  <span>{safeData.hero.button1Text} ←</span>
+                </a>
+                <a
+                  href="#about"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick('#about');
+                  }}
+                  className="h-12 px-8 text-lg md:text-xl font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 border-2 border-white text-white hover:bg-white/20"
+                >
+                  <span>{safeData.hero.button2Text}</span>
+                </a>
               </div>
             </div>
           </div>
@@ -220,12 +239,13 @@ const Home: React.FC = () => {
                   ))}
                 </div>
                 
-                <div className="mt-10">
-                  <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline" className="text-lg px-10 py-4">تواصل معنا</Button>
-                  </a>
-                </div>
               </div>
+            </div>
+
+            <div className="mt-10 flex justify-center w-full">
+              <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="text-lg px-10 py-4">تواصل معنا</Button>
+              </a>
             </div>
           </div>
         </section>
@@ -275,11 +295,20 @@ const Home: React.FC = () => {
         </section>
       )}
 
+      {/* Divider: Services → Features */}
+      {visibility.services === true && visibility.features === true && (
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" aria-hidden="true" />
+      )}
+
       {/* Features Section */}
       {visibility.features === true && (
-        <section id="features" className="py-12 bg-light w-full">
-          <div className="container mx-auto px-4 md:px-6">
-            <SectionHeading 
+        <section id="features" className="relative py-12 bg-white w-full border-y border-gray-100 overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
+            <img src="/images/service.png" alt="" className="w-full h-full object-cover" aria-hidden="true" />
+          </div>
+
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <SectionHeading
               subtitle={safeData.features.subtitle}
               title={safeData.features.title}
               description={safeData.features.description}
@@ -291,7 +320,7 @@ const Home: React.FC = () => {
                 const IconComponent = typeof feature.icon === 'function' ? feature.icon : Briefcase;
                 
                 return (
-                  <div key={index} className="p-10 hover:shadow-xl transition-all duration-300 border border-gray-100 group rounded-sm bg-gradient-to-l from-primary/5 via-white via-primary/3 to-transparent border-r-4 border-primary">
+                  <div key={index} className="p-10 hover:shadow-xl transition-all duration-300 border border-gray-100 group rounded-xl bg-light hover:bg-white border-r-4 border-primary shadow-sm">
                     <div className="mb-8">
                       <IconComponent className="w-12 h-12 text-primary group-hover:scale-110 transition-transform" strokeWidth={1.5} />
                     </div>
@@ -311,7 +340,6 @@ const Home: React.FC = () => {
       )}
 
 
-      {/* Divider: Services → Clients */}
       <section className="py-6 bg-light relative w-full">
         <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
       </section>
@@ -408,31 +436,29 @@ const Home: React.FC = () => {
 
       {/* Commitment Section */}
       {visibility.stats === true && (
-        <section id="commitment" className="bg-secondary text-white relative w-full">
-          <div className="absolute inset-0 opacity-10 pointer-events-none w-full">
-            <img src="/images/service.png" alt="background" className="w-full h-full object-cover" />
+        <section id="commitment" className="relative w-full text-white overflow-hidden min-h-[420px] sm:min-h-[520px] md:min-h-[600px]">
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <img src="/images/service.png" alt="" className="w-full h-full object-cover opacity-30" aria-hidden="true" />
           </div>
-          
-          <div className="container mx-auto px-4 md:px-6 py-12 md:py-16 relative z-10">
-            <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
-              <div className="order-2 md:order-1">
-                <span className="text-primary font-bold tracking-widest text-sm uppercase mb-3 block">التزامنا</span>
-                <h2 className="text-4xl md:text-5xl font-serif font-bold mb-8 leading-tight">
-                  {safeData.stats.title}
-                </h2>
-                <p className="text-gray-200 text-xl leading-relaxed max-w-2xl">
-                  {safeData.stats.description}
-                </p>
-              </div>
-              <div className="relative order-1 md:order-2 h-56 sm:h-72 md:h-full md:min-h-[600px] lg:min-h-[700px] overflow-hidden">
-                <div className="absolute inset-0 md:-m-2 lg:-m-4 xl:-m-6">
-                  <img 
-                    src={safeData.stats.image} 
-                    alt="أفق عمراني ومشاريع إنشائية في المملكة" 
-                    className="w-full h-full object-cover rounded-lg shadow-2xl border-2 border-white/5" 
-                  />
-                </div>
-              </div>
+          <div className="absolute inset-0 z-[1]">
+            <img
+              src={safeData.stats.image}
+              alt=""
+              className="w-full h-full object-cover opacity-55"
+              aria-hidden="true"
+            />
+            <div className="absolute inset-0 bg-secondary/65 bg-gradient-to-l from-secondary/85 via-secondary/55 to-secondary/45" />
+          </div>
+
+          <div className="absolute inset-0 z-10 flex items-center justify-center px-6 sm:px-10 py-12 md:py-16">
+            <div className="w-full max-w-4xl mx-auto text-center">
+              <span className="text-primary font-bold tracking-widest text-sm uppercase mb-3 block">التزامنا</span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 md:mb-8 leading-tight text-balance mx-auto">
+                {safeData.stats.title}
+              </h2>
+              <p className="text-gray-100 text-lg sm:text-xl md:text-2xl leading-relaxed mx-auto">
+                {safeData.stats.description}
+              </p>
             </div>
           </div>
         </section>

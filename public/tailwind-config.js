@@ -29,6 +29,7 @@ window.tailwind.config = {
       fontFamily: {
         sans: ['Tajawal', 'sans-serif'],
         serif: ['Tajawal', 'serif'],
+        brand: ['Cairo', 'Tajawal', 'sans-serif'],
       },
     },
   },
