@@ -1,13 +1,3 @@
-# Ignore documentation files that may contain example values
-NETLIFY_ENV_SETUP.txt
-ENVIRONMENT_SETUP.md
-SUPABASE_SETUP.md
-DATABASE_SETUP_COMPLETE.md
-MIGRATION_SUMMARY.md
-
-# Ignore scripts directory (setup scripts use env vars, not hardcoded values)
-scripts/
-
 # Ignore dist folder (built files)
 dist/
 
@@ -18,5 +8,4 @@ node_modules/
 .env
 .env.local
 .env.production
-env.production.example
 

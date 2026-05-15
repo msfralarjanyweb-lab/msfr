@@ -6,8 +6,7 @@
 # These are public keys meant to be embedded in client-side code
 # VITE_* variables are safe to expose in client-side code
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY"
-  SECRETS_SCAN_OMIT_PATHS = "dist/**,env.production.example"
+  SECRETS_SCAN_OMIT_PATHS = "dist/**"
 
 [[headers]]
   for = "/*.js"

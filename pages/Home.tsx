@@ -1,41 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Briefcase, Gavel, CheckCircle2, ChevronDown, MessageCircle, CheckCircle, Scale, PlayCircle, ArrowRight, Twitter, Youtube, Mail, Phone, MapPin, Send, Clock, Shield } from 'lucide-react';
+import { Users, Briefcase, Gavel, ChevronDown, MessageCircle, CheckCircle, Scale, PlayCircle, ArrowRight, Twitter, Youtube, Mail, Phone, MapPin, FileText, HardHat } from 'lucide-react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import Button from '../components/Button';
 import SectionHeading from '../components/SectionHeading';
-import { FEATURES } from '../data/constants';
+import { FEATURES, SERVICE_ICONS } from '../data/constants';
 import { useData } from '../contexts/DataContext';
-import { useHomeVisitCount } from '../hooks/useHomeVisitCount';
-
-// Icon mapping for features - needed because icons can't be serialized to localStorage
-const FEATURE_ICONS = [Briefcase, Users, Clock, Scale, Gavel, Shield];
 
 const Home: React.FC = () => {
   const contextData = useData();
   const data = contextData?.data;
   const articles = contextData?.articles || [];
-  const clients = contextData?.clients || [];
   const videos = contextData?.videos || [];
-  const isLoading = contextData?.isLoading ?? false;
-  // Count a homepage visit once per session. We don't fetch the total here to avoid extra Supabase reads.
-  useHomeVisitCount({ registerVisit: true, fetchCount: false });
-  
-  // Safety check: ensure data exists, but be more lenient
-  if (!data || !contextData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-light pt-24">
-        <div className="text-center max-w-md mx-auto px-4">
-          <h2 className="text-2xl font-bold text-secondary mb-4">جاري تحميل البيانات...</h2>
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-  
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
   // Ensure data has required structure
   if (!data.hero || !data.about || !data.services) {
     console.warn('Data structure incomplete, some sections may not render correctly');
@@ -81,12 +65,6 @@ const Home: React.FC = () => {
     ? safeData.features.items
     : FEATURES;
 
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-
-  const toggleFaq = (index: number) => {
-    setOpenFaqIndex(openFaqIndex === index ? null : index);
-  };
-
   const handleNavClick = (href: string) => {
     const element = document.querySelector(href);
     if (element) {
@@ -125,10 +103,7 @@ const Home: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-light pt-24">
         <div className="text-center max-w-md mx-auto px-4">
           <h2 className="text-2xl font-bold text-secondary mb-4">جميع الأقسام معطّلة</h2>
-          <p className="text-gray-600 mb-6">يرجى تفعيل قسم واحد على الأقل من لوحة التحكم لعرض المحتوى.</p>
-          <a href="/admin" className="inline-block px-6 py-3 bg-primary text-white rounded-lg font-bold hover:bg-secondary transition-colors">
-            الذهاب إلى لوحة التحكم
-          </a>
+          <p className="text-gray-600 mb-6">يرجى تفعيل قسم واحد على الأقل في ملف <code className="text-sm bg-gray-100 px-2 py-1 rounded">data/site.ts</code> لعرض المحتوى.</p>
         </div>
       </div>
     );
@@ -144,13 +119,13 @@ const Home: React.FC = () => {
               
               {/* Text Content */}
               <div className="space-y-8 md:pl-10 order-2 md:order-1 fade-in-up py-10 md:py-0">
-                <span className="text-primary font-bold tracking-widest text-base uppercase">{safeData?.hero?.badge || 'شركة محاماة رائدة'}</span>
-                <h1 className="text-5xl md:text-7xl font-bold text-secondary leading-tight">
-                  {safeData?.hero?.title || 'استخدم خبرتنا'} <br />
-                  <span className="text-primary">{safeData?.hero?.titleHighlight || 'القانونية الفعالة'}</span>
+                <span className="text-primary font-bold tracking-widest text-base uppercase">{safeData.hero.badge}</span>
+                <h1 className="text-4xl md:text-6xl font-bold text-secondary leading-tight">
+                  {safeData.hero.title} <br />
+                  <span className="text-primary">{safeData.hero.titleHighlight}</span>
                 </h1>
                 <p className="text-gray-600 text-xl leading-relaxed max-w-lg font-medium">
-                  {safeData?.hero?.description || 'ندافع عن حقوقك ونساعدك على النجاح. فريقنا المتخصص يضمن لك أفضل تمثيل قانوني في كافة القضايا التجارية والشخصية.'}
+                  {safeData.hero.description}
                 </p>
                 <div className="flex flex-wrap gap-4 pt-4">
                   <a href={whatsappHref} target="_blank" rel="noopener noreferrer">
@@ -167,7 +142,7 @@ const Home: React.FC = () => {
                 <div className="absolute inset-0 bg-primary-100 rounded-bl-[100px] -z-10 transform translate-x-6 translate-y-6"></div>
                 <img 
                   src={safeData.hero.image} 
-                  alt="Saudi Business Man" 
+                  alt="مشروع إنشائي قيد التنفيذ مع رافعة برجية" 
                   className="w-full h-full object-cover rounded-bl-[100px] shadow-2xl"
                 />
                 <div className="absolute bottom-8 right-8 bg-white p-6 lg:p-8 shadow-2xl max-w-sm hidden lg:block border-r-4 border-primary rounded-lg backdrop-blur-sm">
@@ -207,33 +182,38 @@ const Home: React.FC = () => {
                 <div className="border-4 sm:border-8 md:border-[12px] border-light relative z-10 bg-light">
                   <img 
                     src={safeData.about.image} 
-                    alt="Business Meeting" 
+                    alt="مخططات ومستندات مشاريع المقاولات" 
                     className="w-full h-auto object-contain shadow-lg block"
                   />
                 </div>
                 <div className="absolute bottom-0 left-0 md:-bottom-8 md:-left-8 w-36 h-36 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-accent p-3 sm:p-4 md:p-8 flex flex-col justify-center items-center text-white z-20 shadow-xl">
-                  <span className="text-3xl sm:text-4xl md:text-6xl font-bold">تميزنا</span>
-                  <span className="text-center text-[10px] sm:text-xs md:text-base font-bold uppercase tracking-wide mt-1 md:mt-2 leading-tight sm:leading-normal">بسرعة الخدمة وجودة العمل</span>
+                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold">المقاولات</span>
+                  <span className="text-center text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-wide mt-1 md:mt-2 leading-tight sm:leading-normal">قطاع متخصص</span>
                 </div>
               </div>
 
               <div>
-                <SectionHeading 
-                  subtitle={safeData.about.subtitle}
-                  title={safeData.about.title}
-                  description={safeData.about.description}
-                  align="left"
-                />
-                
-                <div className="space-y-8 mt-10">
+                <span className="text-primary font-bold tracking-widest text-base uppercase mb-3 block">{safeData.about.subtitle}</span>
+                <h2 className="text-4xl md:text-5xl font-bold text-secondary mb-6 leading-tight">
+                  شركة محاماة متخصصة في قطاع <span className="text-primary">المقاولات</span>
+                </h2>
+                <div className="space-y-5 text-gray-700 text-lg leading-relaxed font-medium">
+                  {safeData.about.description.split('\n\n').map((paragraph, i) => (
+                    <p key={i}>{paragraph}</p>
+                  ))}
+                </div>
+                <div className="mt-10 space-y-6">
                   {safeData.about.features.map((feature, index) => (
-                    <div key={index} className="flex gap-5 bg-gradient-to-l from-accent/5 via-accent/3 to-transparent rounded-lg p-5 md:p-6 border-r-4 border-accent">
-                      <div className="w-14 h-14 rounded-full bg-accent-50 flex items-center justify-center flex-shrink-0 text-accent">
-                        {index === 0 ? <Scale size={28} /> : <Users size={28} />}
+                    <div
+                      key={index}
+                      className="bg-secondary text-white rounded-xl p-6 md:p-8 border-r-4 border-primary flex gap-5 items-start"
+                    >
+                      <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 text-primary">
+                        <HardHat size={28} />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-2xl font-bold text-secondary mb-3">{feature.title}</h3>
-                        <p className="text-gray-700 text-lg font-medium">{feature.description}</p>
+                      <div>
+                        <h3 className="text-xl font-bold text-primary mb-3">{feature.title}</h3>
+                        <p className="text-gray-200 text-base leading-relaxed">{feature.description}</p>
                       </div>
                     </div>
                   ))}
@@ -265,35 +245,24 @@ const Home: React.FC = () => {
               description={safeData.services.description}
             />
 
-            <div className="grid md:grid-cols-3 gap-8 lg:gap-10 mt-16">
-              {safeData.services.items.slice(0, 3).map((service, index) => (
-              <div 
-                key={index} 
-                className="group bg-gradient-to-l from-primary/5 via-primary/3 to-transparent hover:shadow-2xl transition-all duration-500 overflow-hidden border-r-4 border-primary rounded-lg transform hover:-translate-y-2 flex flex-col h-full"
-              >
-                <div className="h-64 lg:h-72 overflow-hidden relative flex-shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-t from-secondary/40 via-secondary/10 to-transparent group-hover:from-secondary/20 transition-all duration-500 z-10"></div>
-                  <img 
-                    src={service.image} 
-                    alt={service.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 right-4 z-20">
-                    <div className="bg-primary/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-lg transform group-hover:scale-110 transition-transform duration-300">
-                      <span className="text-xs font-bold uppercase tracking-wider">خدمة {index + 1}</span>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 lg:gap-8 mt-16">
+              {safeData.services.items.map((service, index) => {
+                const ServiceIcon = SERVICE_ICONS[index] || Briefcase;
+                return (
+                  <div
+                    key={index}
+                    className="group bg-white hover:shadow-xl transition-all duration-300 border border-gray-100 rounded-xl p-6 text-center border-t-4 border-t-primary flex flex-col h-full"
+                  >
+                    <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-primary-50 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                      <ServiceIcon size={32} strokeWidth={1.5} />
                     </div>
+                    <h3 className="text-lg font-bold text-secondary mb-3 group-hover:text-primary transition-colors leading-snug">
+                      {service.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm leading-relaxed flex-grow">{service.description}</p>
                   </div>
-                </div>
-                <div className="p-8 lg:p-10 flex-grow flex flex-col">
-                  <h3 className="text-xl lg:text-2xl font-bold text-secondary mb-4 leading-tight group-hover:text-primary transition-colors duration-300">
-                    {service.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-base font-medium flex-grow">
-                    {service.description}
-                  </p>
-                </div>
-              </div>
-              ))}
+                );
+              })}
             </div>
             
             <div className="text-center mt-12">
@@ -304,6 +273,42 @@ const Home: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* Features Section */}
+      {visibility.features === true && (
+        <section id="features" className="py-12 bg-light w-full">
+          <div className="container mx-auto px-4 md:px-6">
+            <SectionHeading 
+              subtitle={safeData.features.subtitle}
+              title={safeData.features.title}
+              description={safeData.features.description}
+            />
+            
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 mt-16">
+              {featureItems.map((feature, index) => {
+                // Get icon from mapping or use default from FEATURES
+                const IconComponent = typeof feature.icon === 'function' ? feature.icon : Briefcase;
+                
+                return (
+                  <div key={index} className="p-10 hover:shadow-xl transition-all duration-300 border border-gray-100 group rounded-sm bg-gradient-to-l from-primary/5 via-white via-primary/3 to-transparent border-r-4 border-primary">
+                    <div className="mb-8">
+                      <IconComponent className="w-12 h-12 text-primary group-hover:scale-110 transition-transform" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors">
+                      {feature.title}
+                    </h3>
+                    <div className="h-0.5 w-16 bg-primary/30 mb-6 group-hover:w-24 transition-all"></div>
+                    <p className="text-gray-700 text-base leading-relaxed font-medium">
+                      {feature.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
 
       {/* Divider: Services → Clients */}
       <section className="py-6 bg-light relative w-full">
@@ -386,11 +391,6 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ) : isLoading ? (
-              <div className="text-center py-10">
-                <p className="text-gray-600 text-lg mb-4">جاري تحميل العملاء...</p>
-                <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-              </div>
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-500 text-lg">لا يوجد عملاء متاحون حالياً</p>
@@ -405,9 +405,9 @@ const Home: React.FC = () => {
         <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/30 via-primary/30 to-transparent"></div>
       </section>
 
-      {/* Stats Section */}
+      {/* Commitment Section */}
       {visibility.stats === true && (
-        <section className="bg-secondary text-white relative w-full">
+        <section id="commitment" className="bg-secondary text-white relative w-full">
           <div className="absolute inset-0 opacity-10 pointer-events-none w-full">
             <img src="/images/service.png" alt="background" className="w-full h-full object-cover" />
           </div>
@@ -415,51 +415,19 @@ const Home: React.FC = () => {
           <div className="container mx-auto px-4 md:px-6 py-12 md:py-16 relative z-10">
             <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
               <div className="order-2 md:order-1">
-                <span className="text-accent font-bold tracking-widest text-sm uppercase mb-3 block">قيمنا</span>
-                <h2 className="text-5xl md:text-6xl font-serif font-bold mb-8 leading-tight">
+                <span className="text-primary font-bold tracking-widest text-sm uppercase mb-3 block">التزامنا</span>
+                <h2 className="text-4xl md:text-5xl font-serif font-bold mb-8 leading-tight">
                   {safeData.stats.title}
                 </h2>
-                <p className="text-gray-300 text-xl mb-10 leading-relaxed">
+                <p className="text-gray-200 text-xl leading-relaxed max-w-2xl">
                   {safeData.stats.description}
                 </p>
-                
-                <div className="grid grid-cols-2 gap-8 lg:gap-10">
-                  <div className="flex items-start gap-4">
-                    <Users className="text-accent mt-1" size={36} />
-                    <div>
-                      <span className="block text-4xl font-bold text-white mb-1">{safeData.stats.clients}</span>
-                      <span className="text-base text-gray-400">من قيمنا</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <Briefcase className="text-accent mt-1" size={36} />
-                    <div>
-                      <span className="block text-4xl font-bold text-white mb-1">{safeData.stats.compensation}</span>
-                      <span className="text-base text-gray-400">من قيمنا</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <Gavel className="text-accent mt-1" size={36} />
-                    <div>
-                      <span className="block text-4xl font-bold text-white mb-1">{safeData.stats.experience}</span>
-                      <span className="text-base text-gray-400">من قيمنا</span>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <CheckCircle2 className="text-accent mt-1" size={36} />
-                    <div>
-                      <span className="block text-4xl font-bold text-white mb-1">{safeData.stats.successRate}</span>
-                      <span className="text-base text-gray-400">من قيمنا</span>
-                    </div>
-                  </div>
-                </div>
               </div>
-              
               <div className="hidden md:block h-full relative min-h-[600px] lg:min-h-[700px] order-1 md:order-2 overflow-hidden">
                 <div className="absolute inset-0 -m-2 md:-m-4 lg:-m-6">
                   <img 
                     src={safeData.stats.image} 
-                    alt="Kingdom Centre Saudi Arabia" 
+                    alt="أفق عمراني ومشاريع إنشائية في المملكة" 
                     className="w-full h-full object-cover rounded-lg shadow-2xl border-2 border-white/5" 
                   />
                 </div>
@@ -468,11 +436,6 @@ const Home: React.FC = () => {
           </div>
         </section>
       )}
-
-      {/* Divider: Stats → CTA */}
-      <section className="py-0 bg-white relative w-full">
-        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gray-200"></div>
-      </section>
 
       {/* CTA Strip */}
       {visibility.cta === true && (
@@ -490,54 +453,6 @@ const Home: React.FC = () => {
           </div>
         </section>
       )}
-
-      {/* Divider: CTA → Features */}
-      <section className="py-0 bg-gradient-to-b from-white to-light relative w-full">
-        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
-      </section>
-
-      {/* Features Section */}
-      {visibility.features === true && (
-        <section className="py-12 bg-light w-full">
-          <div className="container mx-auto px-4 md:px-6">
-            <SectionHeading 
-              subtitle={safeData.features.subtitle}
-              title={safeData.features.title}
-              description={safeData.features.description}
-            />
-            
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10 mt-16">
-              {featureItems.map((feature, index) => {
-                // Get icon from mapping or use default from FEATURES
-                const IconComponent = typeof feature.icon === 'function' 
-                  ? feature.icon 
-                  : (FEATURE_ICONS[index] || FEATURES[index]?.icon || Briefcase);
-                
-                return (
-                  <div key={index} className="p-10 hover:shadow-xl transition-all duration-300 border border-gray-100 group rounded-sm bg-gradient-to-l from-primary/5 via-white via-primary/3 to-transparent border-r-4 border-primary">
-                    <div className="mb-8">
-                      <IconComponent className="w-12 h-12 text-primary group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-                    </div>
-                    <h3 className="text-2xl font-bold text-secondary mb-4 group-hover:text-primary transition-colors">
-                      {feature.title}
-                    </h3>
-                    <div className="h-0.5 w-16 bg-primary/30 mb-6 group-hover:w-24 transition-all"></div>
-                    <p className="text-gray-700 text-base leading-relaxed font-medium">
-                      {feature.description}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Divider Section */}
-      <section className="py-8 bg-gradient-to-b from-light via-white to-white relative w-full">
-        {/* Decorative border separating sections */}
-        <div className="absolute bottom-0 left-0 right-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/30 via-primary/30 to-transparent"></div>
-      </section>
 
       {/* Testimonials */}
       {visibility.testimonials === true && (
@@ -600,11 +515,6 @@ const Home: React.FC = () => {
           </div>
         </section>
       )}
-
-      {/* Divider: Testimonials → Videos */}
-      <section className="py-6 bg-gradient-to-b from-white to-white relative w-full">
-        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
-      </section>
 
       {/* Visual Library Section */}
       {visibility.videos === true && (
@@ -802,11 +712,6 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* Divider: News → FAQ */}
-      <section className="py-6 bg-gradient-to-b from-light to-white relative w-full">
-        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-accent/20 via-primary/20 to-transparent"></div>
-      </section>
-
       {/* FAQ & Image Split */}
       {visibility.faq === true && (
         <section className="bg-white w-full">
@@ -879,11 +784,6 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* Divider: FAQ → Contact */}
-      <section className="py-6 bg-white relative w-full">
-        <div className="absolute bottom-0 left-0 right-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-      </section>
-
       {/* Contact Section */}
       {visibility.contact === true && (
         <section id="contact" className="py-12 bg-gradient-to-br from-light via-white to-light w-full">
@@ -930,6 +830,17 @@ const Home: React.FC = () => {
                       <a href={`tel:${safeData.contact.phone}`} className="text-gray-700 text-lg font-medium hover:text-primary transition-colors" dir="ltr">
                         {safeData.contact.phone}
                       </a>
+                      <a
+                        href={whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 mt-4 bg-[#25D366] text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-[#20BA5A] transition-all duration-300 shadow-md"
+                      >
+                        <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.375a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                        </svg>
+                        تواصل عبر واتساب
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -944,6 +855,20 @@ const Home: React.FC = () => {
                       <a href={`mailto:${safeData.contact.email}`} className="text-gray-700 text-base hover:text-primary transition-colors break-all">
                         {safeData.contact.email}
                       </a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-r-4 border-primary">
+                  <div className="flex items-start gap-5">
+                    <div className="w-16 h-16 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                      <FileText className="text-primary" size={32} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-secondary mb-3">السجل التجاري</h3>
+                      <p className="text-gray-700 text-lg font-medium" dir="ltr">
+                        {safeData.contact.commercialRegistration}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1021,26 +946,6 @@ const Home: React.FC = () => {
                     />
                   </div>
                 </div>
-              </div>
-
-              <div className="text-center mt-12">
-                <a
-                  href={whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-4 bg-[#25D366] text-white px-8 py-6 rounded-2xl shadow-2xl hover:bg-[#20BA5A] transition-all duration-300 hover:scale-105 active:scale-95 group"
-                >
-                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.375a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                    </svg>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold mb-1">تواصل معنا عبر واتساب</div>
-                    <div className="text-white/90 text-sm">اطلب استشارة الآن</div>
-                  </div>
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                </a>
               </div>
             </div>
           </div>
